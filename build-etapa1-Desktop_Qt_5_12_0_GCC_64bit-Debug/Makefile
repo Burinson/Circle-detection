@@ -225,6 +225,7 @@ DIST          = ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/spec_pre
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/spec_post.prf \
+		../etapa1/.qmake.stash \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -427,6 +428,7 @@ Makefile: ../etapa1/etapa1.pro ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/li
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -621,6 +623,7 @@ Makefile: ../etapa1/etapa1.pro ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/li
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/qt_config.prf:
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/linux-g++/qmake.conf:
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/exclusive_builds.prf:
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/toolchain.prf:
 ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/default_pre.prf:
@@ -1052,11 +1055,47 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtabwidget.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qicon.h \
 		ui_mainwindow.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/QVariant \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QApplication \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qapplication.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qcoreapplication.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qeventloop.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qdesktopwidget.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qguiapplication.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qinputmethod.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QGraphicsView \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qgraphicsview.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qpainter.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qtextoption.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qpen.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qscrollarea.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractscrollarea.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qframe.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qgraphicsscene.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QGridLayout \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qgridlayout.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlayout.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlayoutitem.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qboxlayout.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QMenuBar \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qmenubar.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qmenu.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qaction.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qactiongroup.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QPushButton \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qpushbutton.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractbutton.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QStatusBar \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qstatusbar.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QToolBar \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtoolbar.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QWidget \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QFileDialog \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qfiledialog.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qdir.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qfileinfo.h \
-		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qdialog.h
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qdialog.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/QDebug
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../etapa1/mainwindow.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
