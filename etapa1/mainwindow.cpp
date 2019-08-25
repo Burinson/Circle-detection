@@ -21,68 +21,72 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-pair<int, int> xMid(QImage image) {
-    pair<int, int> xy;
+pair<int, int> xMid(QImage image, QRgb color) {
+    pair<int, int> xy = make_pair(-1, -1);
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
-            if (image.pixelColor(x, y).black() == 255) {
+            if (image.pixelColor(x, y).rgb() == (QRgb)color) {
                 int x_left = x;
                 int x_right = x;
-                while(image.pixelColor(x_right, y).black() == 255)
+                while(image.pixelColor(x_right, y).rgb() == (QRgb)color)
                     x_right++;
                 x_right--;
                 xy.first = (x_left + x_right) / 2;
                 xy.second = y;
                 return xy;
             }
+    return xy;
 }
 
-pair<int, int> antixMid(QImage image) {
-    pair<int, int> xy;
+pair<int, int> antixMid(QImage image, QRgb color) {
+    pair<int, int> xy = make_pair(-1, -1);
     for(int y = image.height()-1; y > 0; --y)
         for(int x = image.width()-1; x > 0; --x)
-            if (image.pixelColor(x, y).black() == 255) {
+            if (image.pixelColor(x, y).rgb() == (QRgb)color) {
                 int x_left = x;
                 int x_right = x;
-                while(image.pixelColor(x_left, y).black() == 255)
+                while(image.pixelColor(x_left, y).rgb() == (QRgb)color)
                     x_left--;
                 x_left++;
                 xy.first = (x_left + x_right) / 2;
                 xy.second = y;
                 return xy;
             }
+    return xy;
 }
 
-pair<int, int> yMid(QImage image) {
-    pair<int, int> xy;
+pair<int, int> yMid(QImage image, QRgb color) {
+    pair<int, int> xy = make_pair(-1, -1);
     for(int x = 0; x < image.width(); ++x)
         for(int y = 0; y < image.height(); ++y)
-            if (image.pixelColor(x, y).black() == 255) {
+            if (image.pixelColor(x, y).rgb() == (QRgb)color) {
                 int y_up = y;
                 int y_down = y;
-                while(image.pixelColor(x, y_down).black() == 255)
+                while(image.pixelColor(x, y_down).rgb() == (QRgb)color)
                     y_down++;
                 y_down--;
                 xy.first = x;
                 xy.second = (y_down + y_up) / 2;
                 return xy;
             }
+    return xy;
 }
 
-pair<int, int> antiyMid(QImage image) {
-    pair<int, int> xy;
+pair<int, int> antiyMid(QImage image, QRgb color) {
+    pair<int, int> xy = make_pair(-1, -1);
     for(int x = image.width()-1; x > 0; --x)
         for(int y = image.height()-1; y > 0; --y)
-            if (image.pixelColor(x, y).black() == 255) {
+            if (image.pixelColor(x, y).rgb() == (QRgb)color) {
                 int y_up = y;
                 int y_down = y;
-                while(image.pixelColor(x, y_up).black() == 255)
+                while(image.pixelColor(x, y_up).rgb() == (QRgb)color)
                     y_up--;
                 y_up++;
                 xy.first = x;
                 xy.second = (y_down + y_up) / 2;
                 return xy;
             }
+    return xy;
 }
 
 int radio(pair<int, int> point, pair<int, int> center, QImage &image) {
@@ -115,21 +119,11 @@ pair<int, int> searchBlack(QImage image) {
                 return make_pair(x, y);
     return make_pair(-1, -1);
 }
-void BFS(QImage &image, QRgb color, pair<int, int> s) {
+int BFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int islands) {
     if (s.first == -1) {
-        qDebug() << "No hay nada más";
-        return;
+        return islands;
     }
     stack<pair<int, int>> queue;
-
-//    vector<QRgb> colors;
-//    for(int i = 0; i < 255; i+=40) {
-//        colors.push_back(qRgb(i, 0, 0));
-//        colors.push_back(qRgb(0, i, 0));
-//        colors.push_back(qRgb(0, 0, i));
-//    }
-
-    //int c = 0;
     queue.push(s);
 
     while(!queue.empty()){
@@ -158,7 +152,14 @@ void BFS(QImage &image, QRgb color, pair<int, int> s) {
         }
     }
 
-    return BFS(image, qRgb(0, 0, 255), searchBlack(image));
+    return BFS(image, qRgb((colorChange+50)%255, (colorChange+50)%255, 255), searchBlack(image), colorChange+50, islands+1);
+}
+
+void paintItBlack(QImage &image) {
+    for(int y = 0; y < image.height(); ++y)
+        for(int x = 0; x < image.width(); ++x)
+            if (image.pixelColor(x, y).black() != 255 && image.pixelColor(x, y).black() != 0)
+                image.setPixel(x, y, qRgb(0, 0, 0));
 }
 
 
@@ -170,36 +171,43 @@ void MainWindow::on_openFile_clicked()
 
     QImage image = QImage(fileName);
     QImage copy = image;
+    paintItBlack(copy);
+    int islands = BFS(copy, qRgb(0, 0, 255), searchBlack(copy), 50, 0);
 
-    // Puntos fundamentales
-//    pair<int, int> top = xMid(image);
-//    pair<int, int> bot = antixMid(image);
-//    pair<int, int> left = yMid(image);
-//    pair<int, int> right = antiyMid(image);
-//    pair<int, int> center = make_pair(top.first, left.second);
+    QRgb color;
 
-//    copy.setPixel(top.first, top.second, qRgb(255, 0, 0));
-//    copy.setPixel(left.first, left.second, qRgb(255, 0, 0));
-//    copy.setPixel(bot.first, bot.second, qRgb(255, 0, 0));
-//    copy.setPixel(right.first, right.second, qRgb(255, 0, 0));
-//    copy.setPixel(center.first, center.second, qRgb(255, 0, 0));
+    for(int i = 0; i < islands; ++i) {
+        color = qRgb((50*i)%255, (50*i)%255, 255);
+        // Puntos fundamentales
+        pair<int, int> top = xMid(copy, color);
+        pair<int, int> bot = antixMid(copy, color);
+        pair<int, int> left = yMid(copy, color);
+        pair<int, int> right = antiyMid(copy, color);
+        pair<int, int> center = make_pair(top.first, left.second);
 
-    // Radio
-//    int topRadio = radio(top, center, copy);
-//    radio(right, center, copy);
-//    radio(bot, center, copy);
-//    int leftRadio = radio(left, center, copy);
+        copy.setPixel(top.first, top.second, qRgb(255, 0, 0));
+        copy.setPixel(left.first, left.second, qRgb(255, 0, 0));
+        copy.setPixel(bot.first, bot.second, qRgb(255, 0, 0));
+        copy.setPixel(right.first, right.second, qRgb(255, 0, 0));
+        copy.setPixel(center.first, center.second, qRgb(255, 0, 0));
 
-    // Circulo?
-//    qDebug() << "top" << top.first << top.second;
-//    qDebug() << "bot" << bot.first << bot.second;
-//    qDebug() << "left" << left.first << left.second;
-//    qDebug() << "right" << right.first << right.second;
-//    qDebug() << "center" << center.first << center.second;
-//    qDebug() << isCircle(topRadio, leftRadio);
+        // Radio
+        int topRadio = radio(top, center, copy);
+        radio(right, center, copy);
+        radio(bot, center, copy);
+        int leftRadio = radio(left, center, copy);
 
-    // BFS
-    BFS(copy, qRgb(0, 0, 255), searchBlack(copy));
+        // Circulo?
+        qDebug() << "top" << top.first << top.second;
+        qDebug() << "bot" << bot.first << bot.second;
+        qDebug() << "left" << left.first << left.second;
+        qDebug() << "right" << right.first << right.second;
+        qDebug() << "center" << center.first << center.second;
+        qDebug() << isCircle(topRadio, leftRadio);
+
+    }
+
+
     QGraphicsScene *graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
     ui->graphicsView->setScene(graphic);
