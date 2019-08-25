@@ -9,6 +9,9 @@
 #define RIGHT(p) p.first+1, p.second
 #define BOTTOM(p) p.first, p.second+1
 #define LEFT(p) p.first-1, p.second
+#define RED qRgb(255, 0, 0)
+#define GREEN qRgb(0, 255, 0)
+#define BLUE qRgb(0, 0, 255)
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -92,6 +95,9 @@ pair<int, int> antiyMid(QImage image, QRgb color) {
     return xy;
 }
 
+QRgb radiusColor = GREEN;
+QRgb centroidColor = RED;
+
 int radio(pair<int, int> point, pair<int, int> center, QImage &image) {
     int maximum;
     int minimum;
@@ -99,20 +105,20 @@ int radio(pair<int, int> point, pair<int, int> center, QImage &image) {
         maximum = max(point.second, center.second);
         minimum = min(point.second, center.second);
         for(int y = minimum; y < maximum; ++y) {
-            image.setPixel(point.first, y, qRgb(255, 0, 0));
+            image.setPixel(point.first, y, radiusColor);
         }
     } else if (point.second == center.second) {
         maximum = max(point.first, center.first);
         minimum = min(point.first, center.first);
         for(int x = minimum; x < maximum; ++x) {
-            image.setPixel(x, point.second, qRgb(255, 0, 0));
+            image.setPixel(x, point.second, radiusColor);
         }
     }
     return maximum - minimum;
 }
 
 bool isCircle(int radio1, int radio2) {
-    return abs(radio1 - radio2) <= 10;
+    return abs(radio1 - radio2) <= 1;
 }
 
 pair<int, int> searchBlack(QImage image) {
@@ -122,15 +128,32 @@ pair<int, int> searchBlack(QImage image) {
                 return make_pair(x, y);
     return make_pair(-1, -1);
 }
-int BFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int islands) {
-    if (s.first == -1) {
-        return islands;
+
+bool edge(QImage image, pair<int, int> p) {
+    if (!image.valid(TOP(p)) ||
+        !image.valid(RIGHT(p)) ||
+        !image.valid(BOTTOM(p)) ||
+        !image.valid(LEFT(p))) {
+        qDebug() << "Incomplete";
+            return true;
     }
+    return false;
+}
+
+int DFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int circles, bool complete) {
+    if (s.first == -1 && s.second == -1) {
+        return circles;
+    }
+    pair<int, int> start = s;
+
     stack<pair<int, int>> queue;
     queue.push(s);
 
     while(!queue.empty()){
         s = queue.top();
+        if (edge(image, s) && complete) {
+            return DFS(image, BLUE, start, colorChange, circles, false);
+        }
         image.setPixel(s.first, s.second, color);
         queue.pop();
         if (image.pixelColor(TOP(s)).black() == 255) {
@@ -155,14 +178,14 @@ int BFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int island
         }
     }
 
-    return BFS(image, qRgb(colorChange+2, colorChange+2, colorChange+2), searchBlack(image), colorChange+2, islands+1);
+    return DFS(image, qRgb(colorChange+2, colorChange+2, colorChange+2), searchBlack(image), colorChange+2, circles+1, true);
 }
 
-void paintItWhite(QImage &image) {
+void paintItBlack(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
             if (image.pixelColor(x, y).black() != 255 && image.pixelColor(x, y).black() != 0)
-                image.setPixel(x, y, qRgb(255, 255, 255));
+                image.setPixel(x, y, qRgb(0, 0, 0));
 }
 
 
@@ -179,15 +202,13 @@ void MainWindow::on_openFile_clicked()
     QGraphicsScene *graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(image));
     ui->graphicsViewOriginal->setScene(graphic);
-    //ui->graphicsViewOriginal->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
 
-    paintItWhite(copy);
-    int islands = BFS(copy, qRgb(2, 2, 2), searchBlack(copy), 2, 0);
-    qDebug() << islands;
+    paintItBlack(copy);
+    int circles = DFS(copy, qRgb(2, 2, 2), searchBlack(copy), 2, 0, true);
 
     QRgb color;
 
-    for(int i = 1; i <= islands; ++i) {
+    for(int i = 1; i <= circles; ++i) {
         color = qRgb(2*i, 2*i, 2*i);
         // Puntos fundamentales
         pair<int, int> top = xMid(copy, color);
@@ -196,37 +217,31 @@ void MainWindow::on_openFile_clicked()
         pair<int, int> right = antiyMid(copy, color);
         pair<int, int> center = make_pair(top.first, left.second);
 
-        copy.setPixel(top.first, top.second, qRgb(255, 0, 0));
-        copy.setPixel(left.first, left.second, qRgb(255, 0, 0));
-        copy.setPixel(bot.first, bot.second, qRgb(255, 0, 0));
-        copy.setPixel(right.first, right.second, qRgb(255, 0, 0));
-
         //Centroide
-        copy.setPixel(center.first, center.second, qRgb(0, 255, 0));
-        copy.setPixel(TOP(center), qRgb(0, 255, 0));
-        copy.setPixel(RIGHT(center), qRgb(0, 255, 0));
-        copy.setPixel(BOTTOM(center), qRgb(0, 255, 0));
-        copy.setPixel(LEFT(center), qRgb(0, 255, 0));
+        copy.setPixel(center.first, center.second, centroidColor);
+        copy.setPixel(TOP(center), centroidColor);
+        copy.setPixel(RIGHT(center), centroidColor);
+        copy.setPixel(BOTTOM(center), centroidColor);
+        copy.setPixel(LEFT(center), centroidColor);
+
+        copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
+        copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
+        copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
+        copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
 
         // Radio
         int topRadio = radio(top, center, copy);
         int leftRadio = radio(left, center, copy);
 
-        // Circulo?
-        qDebug() << "top" << top.first << top.second;
-        qDebug() << "bot" << bot.first << bot.second;
-        qDebug() << "left" << left.first << left.second;
-        qDebug() << "right" << right.first << right.second;
-        qDebug() << "center" << center.first << center.second;
-        qDebug() << isCircle(topRadio, leftRadio);
+        // Diferencia entre radios
+        qDebug() << "Diferencia de radios" << i << "->" << abs(topRadio - leftRadio);
 
+        qDebug() << "Círculo?" << isCircle(topRadio, leftRadio);
     }
-
 
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
     ui->graphicsViewResult->setScene(graphic);
-    //ui->graphicsViewResult->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
 
 }
 
