@@ -155,14 +155,14 @@ int BFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int island
         }
     }
 
-    return BFS(image, qRgb((colorChange+50)%255, (colorChange+50)%255, 255), searchBlack(image), colorChange+50, islands+1);
+    return BFS(image, qRgb(colorChange+2, colorChange+2, colorChange+2), searchBlack(image), colorChange+2, islands+1);
 }
 
-void paintItBlack(QImage &image) {
+void paintItWhite(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
             if (image.pixelColor(x, y).black() != 255 && image.pixelColor(x, y).black() != 0)
-                image.setPixel(x, y, qRgb(0, 0, 0));
+                image.setPixel(x, y, qRgb(255, 255, 255));
 }
 
 
@@ -181,14 +181,14 @@ void MainWindow::on_openFile_clicked()
     ui->graphicsViewOriginal->setScene(graphic);
     //ui->graphicsViewOriginal->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
 
-    //paintItBlack(copy);
-    int islands = BFS(copy, qRgb(0, 0, 255), searchBlack(copy), 50, 0);
+    paintItWhite(copy);
+    int islands = BFS(copy, qRgb(2, 2, 2), searchBlack(copy), 2, 0);
     qDebug() << islands;
 
     QRgb color;
 
-    for(int i = 0; i < islands; ++i) {
-        color = qRgb((50*i)%255, (50*i)%255, 255);
+    for(int i = 1; i <= islands; ++i) {
+        color = qRgb(2*i, 2*i, 2*i);
         // Puntos fundamentales
         pair<int, int> top = xMid(copy, color);
         pair<int, int> bot = antixMid(copy, color);
