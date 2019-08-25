@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <stack>
 #include <QOpenGLWidget>
+#include <math.h>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -13,7 +14,7 @@
 #define GREEN qRgb(0, 255, 0)
 #define BLUE qRgb(0, 0, 255)
 #define BLACK qRgb(0, 0, 0)
-#define WHITE qRgb(254, 254, 254)
+#define WHITE qRgb(255, 255, 255)
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -57,7 +58,7 @@ pair<int, int> antixMid(QImage image, QRgb color) {
                     x_left--;
                 x_left++;
                 xy.first = (x_left + x_right) / 2;
-                xy.second = y;
+                xy.second = y+1;
                 return xy;
             }
     return xy;
@@ -90,7 +91,7 @@ pair<int, int> antiyMid(QImage image, QRgb color) {
                 while(image.pixelColor(x, y_up).rgb() == (QRgb)color)
                     y_up--;
                 y_up++;
-                xy.first = x;
+                xy.first = x+1;
                 xy.second = (y_down + y_up) / 2;
                 return xy;
             }
@@ -100,23 +101,35 @@ pair<int, int> antiyMid(QImage image, QRgb color) {
 QRgb radiusColor = GREEN;
 QRgb centroidColor = RED;
 
-int radius(pair<int, int> point, pair<int, int> center, QImage &image) {
+int radiusLen(pair<int, int> point, pair<int, int> center) {
     int maximum;
     int minimum;
     if (point.first == center.first) {
         maximum = max(point.second, center.second);
         minimum = min(point.second, center.second);
-//        for(int y = minimum; y < maximum; ++y) {
-//            image.setPixel(point.first, y, radiusColor);
-//        }
     } else if (point.second == center.second) {
         maximum = max(point.first, center.first);
         minimum = min(point.first, center.first);
-//        for(int x = minimum; x < maximum; ++x) {
-//            image.setPixel(x, point.second, radiusColor);
-//        }
     }
     return maximum - minimum;
+}
+
+void drawRadius(pair<int, int> point, pair<int, int> center, QImage &image) {
+    int maximum;
+    int minimum;
+    if (point.first == center.first) {
+        maximum = max(point.second, center.second);
+        minimum = min(point.second, center.second);
+        for(int y = minimum; y < maximum; ++y) {
+            image.setPixel(point.first, y, radiusColor);
+        }
+    } else if (point.second == center.second) {
+        maximum = max(point.first, center.first);
+        minimum = min(point.first, center.first);
+        for(int x = minimum; x < maximum; ++x) {
+            image.setPixel(x, point.second, radiusColor);
+        }
+    }
 }
 
 bool isCircle(int radio1, int radio2) {
@@ -126,7 +139,7 @@ bool isCircle(int radio1, int radio2) {
 pair<int, int> searchColor(QImage image, QRgb color) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
-            if ((QRgb)image.pixelColor(x, y).rgb() == (QRgb)color)
+            if (QRgb(image.pixelColor(x, y).rgb()) == QRgb(color))
                 return make_pair(x, y);
     return make_pair(-1, -1);
 }
@@ -164,6 +177,18 @@ int DFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int circle
             sCopy.second--;
             queue.push(sCopy);
         }
+        if (image.pixelColor(TOP(make_pair(s.first+1, s.second) )).black() == 255) {
+            pair<int, int> sCopy = s;
+            sCopy.second--;
+            sCopy.first++;
+            queue.push(sCopy);
+        }
+        if (image.pixelColor(TOP(make_pair(s.first-1, s.second) )).black() == 255) {
+            pair<int, int> sCopy = s;
+            sCopy.second--;
+            sCopy.first--;
+            queue.push(sCopy);
+        }
         if (image.pixelColor(RIGHT(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.first++;
@@ -172,6 +197,18 @@ int DFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int circle
         if (image.pixelColor(BOTTOM(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.second++;
+            queue.push(sCopy);
+        }
+        if (image.pixelColor(BOTTOM(make_pair(s.first-1, s.second))).black() == 255) {
+            pair<int, int> sCopy = s;
+            sCopy.second++;
+            sCopy.first--;
+            queue.push(sCopy);
+        }
+        if (image.pixelColor(BOTTOM(make_pair(s.first+1, s.second))).black() == 255) {
+            pair<int, int> sCopy = s;
+            sCopy.second++;
+            sCopy.first++;
             queue.push(sCopy);
         }
         if (image.pixelColor(LEFT(s)).black() == 255) {
@@ -213,13 +250,12 @@ void deleteOval(QImage &image, QRgb color, pair<int, int> s) {
             queue.push(sCopy);
         }
     }
-    qDebug() << "Finished";
 
 }
-void paintItBlack(QImage &image) {
+void clean(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
-            if (image.pixelColor(x, y).black() != 255 && image.pixelColor(x, y).black() != 0)
+            if (image.pixelColor(x, y).black() != 255 && QRgb(image.pixelColor(x, y).rgb()) != QRgb(WHITE))
                 image.setPixel(x, y, BLACK);
 }
 
@@ -238,7 +274,7 @@ void MainWindow::on_openFile_clicked()
     graphic->addPixmap(QPixmap::fromImage(image));
     ui->graphicsViewOriginal->setScene(graphic);
 
-    paintItBlack(copy);
+    clean(copy);
     int circles = DFS(copy, qRgb(2, 2, 2), searchColor(copy, BLACK), 2, 0, true);
 
     QRgb color;
@@ -248,35 +284,59 @@ void MainWindow::on_openFile_clicked()
         // Puntos fundamentales
         pair<int, int> top = xMid(copy, color);
         pair<int, int> bot = antixMid(copy, color);
-        pair<int, int> left = yMid(copy, color);
         pair<int, int> right = antiyMid(copy, color);
+        pair<int, int> left = yMid(copy, color);
+
+        // Ajustar diferencias
+        top.first = max(top.first, bot.first);
+        bot.first = top.first;
+        left.second = max(left.second, right.second);
+        right.second = left.second;
+
         pair<int, int> center = make_pair(top.first, left.second);
 
         // Radio
-        int topRadio = radius(top, center, copy);
-        int leftRadio = radius(left, center, copy);
+        int topRadio = radiusLen(top, center);
+        int rightRadio = radiusLen(right, center);
+        int botRadio = radiusLen(bot, center);
+        int leftRadio = radiusLen(left, center);
 
-        // Eliminar óvalos
-        if (!isCircle(topRadio, leftRadio)) {
-            deleteOval(copy, color, searchColor(copy, color));
-        }
-
-        //Centroide
-//        copy.setPixel(center.first, center.second, centroidColor);
-//        copy.setPixel(TOP(center), centroidColor);
-//        copy.setPixel(RIGHT(center), centroidColor);
-//        copy.setPixel(BOTTOM(center), centroidColor);
-//        copy.setPixel(LEFT(center), centroidColor);
-//        copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
-//        copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
-//        copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
-//        copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
-
+        // Posiciones
+        qDebug() << "Top:" << top;
+        qDebug() << "Right:" << right;
+        qDebug() << "Down:" << bot;
+        qDebug() << "Left:" << left;
+        qDebug() << "Center" << center;
 
         // Diferencia entre radios
-        qDebug() << "Diferencia de radios" << i << "->" << abs(topRadio - leftRadio);
+        int topDiff = abs(topRadio - rightRadio);
+        int rightDiff = abs(rightRadio - botRadio);
+        int botDiff = abs(botRadio - leftRadio);
+        int leftDiff = abs(leftRadio - topRadio);
+        int totalDiff = topDiff + rightDiff + botDiff + leftDiff;
+        qDebug() << "Diferencia de radios" << i << "->" << totalDiff;
 
-        qDebug() << "Círculo?" << isCircle(topRadio, leftRadio);
+        // Eliminar óvalos
+        if (totalDiff > 10) {
+            deleteOval(copy, color, searchColor(copy, color));
+        } else {
+            // Dibujar radio
+            drawRadius(top, center, copy);
+            drawRadius(right, center, copy);
+            drawRadius(bot, center, copy);
+            drawRadius(left, center, copy);
+
+            // Dibujar Centroide
+            copy.setPixel(center.first, center.second, centroidColor);
+            copy.setPixel(TOP(center), centroidColor);
+            copy.setPixel(RIGHT(center), centroidColor);
+            copy.setPixel(BOTTOM(center), centroidColor);
+            copy.setPixel(LEFT(center), centroidColor);
+            copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
+            copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
+            copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
+            copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
+        }
     }
 
     graphic = new QGraphicsScene(this);
