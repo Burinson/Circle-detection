@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>704</width>
-    <height>495</height>
+    <width>602</width>
+    <height>591</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,9 +16,12 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QGraphicsView" name="graphicsView"/>
+     <widget class="QGraphicsView" name="graphicsViewOriginal"/>
     </item>
-    <item row="1" column="0">
+    <item row="0" column="1">
+     <widget class="QGraphicsView" name="graphicsViewResult"/>
+    </item>
+    <item row="1" column="0" colspan="2">
      <widget class="QPushButton" name="openFile">
       <property name="text">
        <string>Open file</string>
@@ -32,7 +35,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>704</width>
+     <width>602</width>
      <height>22</height>
     </rect>
    </property>

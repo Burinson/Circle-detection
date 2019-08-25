@@ -27,7 +27,8 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QGridLayout *gridLayout;
-    QGraphicsView *graphicsView;
+    QGraphicsView *graphicsViewOriginal;
+    QGraphicsView *graphicsViewResult;
     QPushButton *openFile;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
@@ -37,27 +38,32 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(704, 495);
+        MainWindow->resize(602, 591);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        graphicsView = new QGraphicsView(centralWidget);
-        graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
+        graphicsViewOriginal = new QGraphicsView(centralWidget);
+        graphicsViewOriginal->setObjectName(QString::fromUtf8("graphicsViewOriginal"));
 
-        gridLayout->addWidget(graphicsView, 0, 0, 1, 1);
+        gridLayout->addWidget(graphicsViewOriginal, 0, 0, 1, 1);
+
+        graphicsViewResult = new QGraphicsView(centralWidget);
+        graphicsViewResult->setObjectName(QString::fromUtf8("graphicsViewResult"));
+
+        gridLayout->addWidget(graphicsViewResult, 0, 1, 1, 1);
 
         openFile = new QPushButton(centralWidget);
         openFile->setObjectName(QString::fromUtf8("openFile"));
 
-        gridLayout->addWidget(openFile, 1, 0, 1, 1);
+        gridLayout->addWidget(openFile, 1, 0, 1, 2);
 
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 704, 22));
+        menuBar->setGeometry(QRect(0, 0, 602, 22));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));

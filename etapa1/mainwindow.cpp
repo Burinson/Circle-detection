@@ -3,17 +3,20 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <stack>
+#include <QOpenGLWidget>
 
-#define TOP s.first, s.second-1
-#define RIGHT s.first+1, s.second
-#define BOTTOM s.first, s.second+1
-#define LEFT s.first-1, s.second
+#define TOP(p) p.first, p.second-1
+#define RIGHT(p) p.first+1, p.second
+#define BOTTOM(p) p.first, p.second+1
+#define LEFT(p) p.first-1, p.second
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->showMaximized();
+
 }
 
 MainWindow::~MainWindow()
@@ -130,22 +133,22 @@ int BFS(QImage &image, QRgb color, pair<int, int> s, int colorChange, int island
         s = queue.top();
         image.setPixel(s.first, s.second, color);
         queue.pop();
-        if (image.pixelColor(TOP).black() == 255) {
+        if (image.pixelColor(TOP(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.second--;
             queue.push(sCopy);
         }
-        if (image.pixelColor(RIGHT).black() == 255) {
+        if (image.pixelColor(RIGHT(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.first++;
             queue.push(sCopy);
         }
-        if (image.pixelColor(BOTTOM).black() == 255) {
+        if (image.pixelColor(BOTTOM(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.second++;
             queue.push(sCopy);
         }
-        if (image.pixelColor(LEFT).black() == 255) {
+        if (image.pixelColor(LEFT(s)).black() == 255) {
             pair<int, int> sCopy = s;
             sCopy.first--;
             queue.push(sCopy);
@@ -171,8 +174,16 @@ void MainWindow::on_openFile_clicked()
 
     QImage image = QImage(fileName);
     QImage copy = image;
-    paintItBlack(copy);
+
+
+    QGraphicsScene *graphic = new QGraphicsScene(this);
+    graphic->addPixmap(QPixmap::fromImage(image));
+    ui->graphicsViewOriginal->setScene(graphic);
+    //ui->graphicsViewOriginal->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
+
+    //paintItBlack(copy);
     int islands = BFS(copy, qRgb(0, 0, 255), searchBlack(copy), 50, 0);
+    qDebug() << islands;
 
     QRgb color;
 
@@ -189,12 +200,16 @@ void MainWindow::on_openFile_clicked()
         copy.setPixel(left.first, left.second, qRgb(255, 0, 0));
         copy.setPixel(bot.first, bot.second, qRgb(255, 0, 0));
         copy.setPixel(right.first, right.second, qRgb(255, 0, 0));
-        copy.setPixel(center.first, center.second, qRgb(255, 0, 0));
+
+        //Centroide
+        copy.setPixel(center.first, center.second, qRgb(0, 255, 0));
+        copy.setPixel(TOP(center), qRgb(0, 255, 0));
+        copy.setPixel(RIGHT(center), qRgb(0, 255, 0));
+        copy.setPixel(BOTTOM(center), qRgb(0, 255, 0));
+        copy.setPixel(LEFT(center), qRgb(0, 255, 0));
 
         // Radio
         int topRadio = radio(top, center, copy);
-        radio(right, center, copy);
-        radio(bot, center, copy);
         int leftRadio = radio(left, center, copy);
 
         // Circulo?
@@ -208,10 +223,10 @@ void MainWindow::on_openFile_clicked()
     }
 
 
-    QGraphicsScene *graphic = new QGraphicsScene(this);
+    graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
-    ui->graphicsView->setScene(graphic);
-    ui->graphicsView->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
+    ui->graphicsViewResult->setScene(graphic);
+    //ui->graphicsViewResult->fitInView(graphic->sceneRect(),Qt::KeepAspectRatio);
 
 }
 
