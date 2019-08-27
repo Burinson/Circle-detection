@@ -6,6 +6,7 @@
 #include <QOpenGLWidget>
 #include <math.h>
 #include <qlabel.h>
+#include <qpainter.h>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -223,7 +224,7 @@ void clean(QImage &image) {
                 image.setPixel(x, y, BLACK);
 }
 
-void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, int> down, pair<int, int> left) {
+void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, int> down, pair<int, int> left, int id) {
     pair<int, int> topLeft, topRight, bottomLeft,bottomRight;
     topLeft = make_pair(left.first-5, top.second-5);
     topRight = make_pair(right.first+5, top.second-5);
@@ -234,6 +235,12 @@ void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, 
     drawLine(image, topRight, bottomRight, GREEN);
     drawLine(image, bottomRight, bottomLeft, GREEN);
     drawLine(image, bottomLeft, topLeft, GREEN);
+
+    QPainter p(&image);
+    p.setPen(QPen(Qt::red));
+    p.setFont(QFont("Times", 16, QFont::Bold));
+    p.drawText(QPointF(topLeft.first, topRight.second+5), QString::fromStdString(to_string(id)));
+    p.end();
 }
 
 
@@ -326,7 +333,7 @@ void MainWindow::on_openFile_clicked()
             copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
 
             // Caja verde
-            drawBox(copy, top, right, bot, left);
+            drawBox(copy, top, right, bot, left, i);
 
             QStringList coordinates;
             coordinates << QString::fromStdString(to_string(top.first)) + ", " + QString::fromStdString(to_string(top.second));
