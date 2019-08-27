@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include <qstandarditemmodel.h>
 using namespace std;
 
 namespace Ui {
@@ -20,8 +21,10 @@ public:
 private slots:
     void on_openFile_clicked();
 
+
 private:
     Ui::MainWindow *ui;
+    QStandardItemModel *model;
 };
 
 #endif // MAINWINDOW_H

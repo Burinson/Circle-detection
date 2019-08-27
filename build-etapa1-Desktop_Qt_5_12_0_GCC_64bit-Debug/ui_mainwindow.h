@@ -13,10 +13,13 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTableView>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
 
@@ -27,8 +30,14 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QGridLayout *gridLayout;
+    QTabWidget *tabWidget;
+    QWidget *tab;
+    QGridLayout *gridLayout_2;
     QGraphicsView *graphicsViewOriginal;
     QGraphicsView *graphicsViewResult;
+    QWidget *tab_2;
+    QGridLayout *gridLayout_3;
+    QTableView *tableView;
     QPushButton *openFile;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
@@ -38,22 +47,47 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(602, 591);
+        MainWindow->resize(889, 780);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        graphicsViewOriginal = new QGraphicsView(centralWidget);
+        tabWidget = new QTabWidget(centralWidget);
+        tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
+        tab = new QWidget();
+        tab->setObjectName(QString::fromUtf8("tab"));
+        gridLayout_2 = new QGridLayout(tab);
+        gridLayout_2->setSpacing(6);
+        gridLayout_2->setContentsMargins(11, 11, 11, 11);
+        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        graphicsViewOriginal = new QGraphicsView(tab);
         graphicsViewOriginal->setObjectName(QString::fromUtf8("graphicsViewOriginal"));
 
-        gridLayout->addWidget(graphicsViewOriginal, 0, 0, 1, 1);
+        gridLayout_2->addWidget(graphicsViewOriginal, 0, 0, 1, 1);
 
-        graphicsViewResult = new QGraphicsView(centralWidget);
+        graphicsViewResult = new QGraphicsView(tab);
         graphicsViewResult->setObjectName(QString::fromUtf8("graphicsViewResult"));
 
-        gridLayout->addWidget(graphicsViewResult, 0, 1, 1, 1);
+        gridLayout_2->addWidget(graphicsViewResult, 0, 1, 1, 1);
+
+        tabWidget->addTab(tab, QString());
+        tab_2 = new QWidget();
+        tab_2->setObjectName(QString::fromUtf8("tab_2"));
+        gridLayout_3 = new QGridLayout(tab_2);
+        gridLayout_3->setSpacing(6);
+        gridLayout_3->setContentsMargins(11, 11, 11, 11);
+        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
+        tableView = new QTableView(tab_2);
+        tableView->setObjectName(QString::fromUtf8("tableView"));
+        tableView->horizontalHeader()->setVisible(false);
+
+        gridLayout_3->addWidget(tableView, 0, 0, 1, 1);
+
+        tabWidget->addTab(tab_2, QString());
+
+        gridLayout->addWidget(tabWidget, 0, 0, 1, 1);
 
         openFile = new QPushButton(centralWidget);
         openFile->setObjectName(QString::fromUtf8("openFile"));
@@ -63,7 +97,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 602, 22));
+        menuBar->setGeometry(QRect(0, 0, 889, 22));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
@@ -74,13 +108,18 @@ public:
 
         retranslateUi(MainWindow);
 
+        tabWidget->setCurrentIndex(1);
+
+
         QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi
 
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", nullptr));
-        openFile->setText(QApplication::translate("MainWindow", "Open file", nullptr));
+        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MainWindow", "Ventana principal", nullptr));
+        tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("MainWindow", "Informaci\303\263n", nullptr));
+        openFile->setText(QApplication::translate("MainWindow", "Cargar imagen", nullptr));
     } // retranslateUi
 
 };

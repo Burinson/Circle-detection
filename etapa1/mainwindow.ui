@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
-    <height>591</height>
+    <width>889</width>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,15 +16,43 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QGraphicsView" name="graphicsViewOriginal"/>
-    </item>
-    <item row="0" column="1">
-     <widget class="QGraphicsView" name="graphicsViewResult"/>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Ventana principal</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QGraphicsView" name="graphicsViewOriginal"/>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGraphicsView" name="graphicsViewResult"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Información</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QTableView" name="tableView">
+          <attribute name="horizontalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
     <item row="1" column="0" colspan="2">
      <widget class="QPushButton" name="openFile">
       <property name="text">
-       <string>Open file</string>
+       <string>Cargar imagen</string>
       </property>
      </widget>
     </item>
@@ -35,7 +63,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>602</width>
+     <width>889</width>
      <height>22</height>
     </rect>
    </property>
