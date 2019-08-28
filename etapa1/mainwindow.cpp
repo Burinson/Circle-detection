@@ -263,6 +263,7 @@ void MainWindow::on_openFile_clicked()
     QStringList headers;
     headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro";
     model->setHorizontalHeaderLabels(headers);
+    vector<vector<pair<int, int>>> labels;
     for(int i = 1; i <= circles; ++i) {
         color = qRgb(2*i, 2*i, 2*i);
         // Puntos fundamentales
@@ -332,9 +333,6 @@ void MainWindow::on_openFile_clicked()
             copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
             copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
 
-            // Caja verde
-            drawBox(copy, top, right, bot, left, i);
-
             QStringList coordinates;
             coordinates << QString::fromStdString(to_string(top.first)) + ", " + QString::fromStdString(to_string(top.second));
             coordinates << QString::fromStdString(to_string(right.first)) + ", " + QString::fromStdString(to_string(right.second));
@@ -342,14 +340,36 @@ void MainWindow::on_openFile_clicked()
             coordinates << QString::fromStdString(to_string(left.first)) + ", " + QString::fromStdString(to_string(left.second));
             coordinates << QString::fromStdString(to_string(center.first)) + ", " + QString::fromStdString(to_string(center.second));
 
-            QModelIndex index;
-            for(int j = 0; j < 5; ++j) {
-                ui->tableView->setModel(model);
-                index = model->index(i-1, j, QModelIndex());
-                model->setData(index, coordinates[j]);
+            if (top.first != -1) {
+                vector<pair<int, int>> v;
+                v.push_back(top);
+                v.push_back(right);
+                v.push_back(bot);
+                v.push_back(left);
+                v.push_back(center);
+                labels.push_back(v);
             }
     }
 }
+    QModelIndex index;
+    for(int i = 0; i < labels.size(); ++i) {
+        for(int j = 0; j < 5; ++j) {
+            ui->tableView->setModel(model);
+            index = model->index(i, j, QModelIndex());
+            QStringList coordinates;
+            coordinates << QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
+            coordinates << QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
+            coordinates << QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
+            coordinates << QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
+            coordinates << QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
+            model->setData(index, coordinates[j]);
+            // Caja verde
+            drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
+        }
+    }
+
+
+
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
     ui->graphicsViewResult->setScene(graphic);
