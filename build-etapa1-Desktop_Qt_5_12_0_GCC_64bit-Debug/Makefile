@@ -805,6 +805,8 @@ moc_mainwindow.cpp: ../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QMa
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qtouchdevice.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtabwidget.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qicon.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qstandarditemmodel.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qabstractitemmodel.h \
 		../etapa1/mainwindow.h \
 		moc_predefs.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/bin/moc
@@ -938,6 +940,8 @@ main.o: ../etapa1/main.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qtouchdevice.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtabwidget.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qicon.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qstandarditemmodel.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qabstractitemmodel.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QApplication \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qapplication.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qcoreapplication.h \
@@ -1054,6 +1058,8 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qtouchdevice.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtabwidget.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qicon.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qstandarditemmodel.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qabstractitemmodel.h \
 		ui_mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/QVariant \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QApplication \
@@ -1077,6 +1083,20 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlayout.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlayoutitem.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qboxlayout.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QHeaderView \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qheaderview.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractitemview.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qitemselectionmodel.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractitemdelegate.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qstyleoption.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractspinbox.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qvalidator.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qregularexpression.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qslider.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractslider.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qstyle.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtabbar.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qrubberband.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QMenuBar \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qmenubar.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qmenu.h \
@@ -1087,6 +1107,9 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qabstractbutton.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QStatusBar \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qstatusbar.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QTabWidget \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QTableView \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtableview.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QToolBar \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qtoolbar.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QWidget \
@@ -1095,7 +1118,16 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qdir.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qfileinfo.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qdialog.h \
-		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/QDebug
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/QDebug \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/QOpenGLWidget \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qopenglwidget.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/QSurfaceFormat \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qsurfaceformat.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qopengl.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qt_windows.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qopengles2ext.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qopenglext.h \
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlabel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../etapa1/mainwindow.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 

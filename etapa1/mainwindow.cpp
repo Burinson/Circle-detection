@@ -220,7 +220,8 @@ int separator(QImage &image, QRgb color, pair<int, int> s, int colorChange, int 
 void clean(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
-            if (QRgb(image.pixelColor(x, y).rgb()) != QRgb(WHITE))
+            if (QRgb(image.pixelColor(x, y).rgb()) != QRgb(BLACK) &&
+                    QRgb(image.pixelColor(x, y).rgb()) != QRgb(WHITE))
                 image.setPixel(x, y, BLACK);
 }
 
@@ -248,7 +249,7 @@ void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, 
 void MainWindow::on_openFile_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa1", tr("Image Files (*.png)"));
+        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1", tr("Image Files (*.png)"));
     QImage image = QImage(fileName);
     QImage copy = image;
     QGraphicsScene *graphic = new QGraphicsScene(this);
@@ -259,10 +260,7 @@ void MainWindow::on_openFile_clicked()
     int circles = separator(copy, qRgb(2, 2, 2), searchColor(copy, BLACK), 2, 0, true);
 
     QRgb color;
-    model = new QStandardItemModel(circles, 5, this);
-    QStringList headers;
-    headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro";
-    model->setHorizontalHeaderLabels(headers);
+    model = new QStandardItemModel(circles, 6, this);
     vector<vector<pair<int, int>>> labels;
     for(int i = 1; i <= circles; ++i) {
         color = qRgb(2*i, 2*i, 2*i);
@@ -308,7 +306,7 @@ void MainWindow::on_openFile_clicked()
         }
         // Eliminar óvalos grandes
         else if (diff > 10) {
-            deleteFigure(copy, color, searchColor(copy, color), BLUE);
+            deleteFigure(copy, color, searchColor(copy, color), WHITE);
             i--;
             continue;
         }
@@ -347,21 +345,23 @@ void MainWindow::on_openFile_clicked()
                 v.push_back(bot);
                 v.push_back(left);
                 v.push_back(center);
+                v.push_back(make_pair((topRadio+leftRadio)/2, 0));
                 labels.push_back(v);
             }
     }
 }
     QModelIndex index;
     for(int i = 0; i < labels.size(); ++i) {
-        for(int j = 0; j < 5; ++j) {
+        for(int j = 0; j < 6; ++j) {
             ui->tableView->setModel(model);
             index = model->index(i, j, QModelIndex());
             QStringList coordinates;
-            coordinates << QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
-            coordinates << QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
-            coordinates << QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
-            coordinates << QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
-            coordinates << QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
+            coordinates << "Arriba \n" + QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
+            coordinates << "Derecha \n" + QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
+            coordinates << "Abajo \n" + QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
+            coordinates << "Izquierda \n" + QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
+            coordinates << "Centro \n" + QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
+            coordinates << "Radio \n" + QString::fromStdString(to_string(labels[i][5].first));
             model->setData(index, coordinates[j]);
             // Caja verde
             drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
