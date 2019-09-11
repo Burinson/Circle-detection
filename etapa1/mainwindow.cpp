@@ -19,6 +19,7 @@
 #define BLACK qRgb(0, 0, 0)
 #define WHITE qRgb(255, 255, 255)
 #define YELLOW qRgb(255,255,0)
+#define PURPLE qRgb(77, 0, 102)
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -216,12 +217,16 @@ int separator(QImage &image, QRgb color, pair<int, int> s, int colorChange, int 
     return separator(image, qRgb(colorChange+2, colorChange+2, colorChange+2), searchColor(image, BLACK), colorChange+2, circles+1, true);
 }
 
-
+bool isNoise(QColor color) {
+    return (((color.red() == color.green() && (color.green() == color.blue())))
+            && (color.red() > 0 && color.red() < 255)
+            && (color.green() > 0 && color.green() < 255)
+            && (color.blue() > 0 && color.blue() < 255));
+}
 void clean(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
         for(int x = 0; x < image.width(); ++x)
-            if (QRgb(image.pixelColor(x, y).rgb()) != QRgb(BLACK) &&
-                    QRgb(image.pixelColor(x, y).rgb()) != QRgb(WHITE))
+            if (isNoise(image.pixelColor(x, y)))
                 image.setPixel(x, y, BLACK);
 }
 
@@ -244,12 +249,38 @@ void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, 
     p.end();
 }
 
-
+int sign(double x) {
+    if (x < 0) {
+        return -1;
+    } else {
+        return 1;
+    }
+}
+void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
+   double dx =  abs(x1-x0);
+   double sx = x0<x1 ? 1 : -1;
+   double dy = -abs(y1-y0);
+   double sy = y0<y1 ? 1 : -1;
+   double err = dx+dy;
+   while (true) {
+       if (x0==x1 && y0==y1) break;
+       image.setPixel(x0, y0, color);
+       double e2 = 2*err;
+       if (e2 >= dy)  {
+           err += dy;
+           x0 += sx;
+       }
+       if (e2 <= dx) {
+           err += dx;
+           y0 += sy;
+       }
+   }
+}
 
 void MainWindow::on_openFile_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1", tr("Image Files (*.png)"));
+        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa1", tr("Image Files (*.png)"));
     QImage image = QImage(fileName);
     QImage copy = image;
     QGraphicsScene *graphic = new QGraphicsScene(this);
@@ -284,19 +315,11 @@ void MainWindow::on_openFile_clicked()
         int botRadio = radiusLen(bot, center);
         int leftRadio = radiusLen(left, center);
 
-        // Posiciones
-        qDebug() << "Top:" << top;
-        qDebug() << "Right:" << right;
-        qDebug() << "Down:" << bot;
-        qDebug() << "Left:" << left;
-        qDebug() << "Center" << center;
-
         // Diferencia entre radios
 
         int yLen = topRadio + botRadio;
         int xLen = leftRadio + rightRadio;
         int diff = abs(xLen - yLen);
-        qDebug() << "Diferencia de ejes del circulo" << i << "->" << diff;
 
         // Eliminar donas
         if (image.pixelColor(center.first, center.second).rgb() == QRgb(WHITE)) {
@@ -367,8 +390,33 @@ void MainWindow::on_openFile_clicked()
             drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
         }
     }
-
-
+    int sz = labels.size();
+    vector<vector<int>> graph;
+    for(int i = 0; i < sz; ++i) {
+        vector<int> neighbors;
+        for(int j = 0; j < sz; ++j) {
+            if (i != j) {
+                neighbors.push_back(j);
+            }
+        }
+        graph.push_back(neighbors);
+    }
+    int x0, x1, y0, y1;
+    vector<bool> vis(sz);
+    for(int node = 0; node < sz; ++node) {
+        cout<<labels[node][4].first<<" "<<labels[node][4].second<<endl;
+        for(auto neighbor : graph[node]) {
+            cout<<labels[neighbor][4].first<<","<<labels[neighbor][4].second<<" ";
+            if (!vis[neighbor]) {
+                x0 = labels[node][4].first;
+                y0 = labels[node][4].second;
+                x1 = labels[neighbor][4].first;
+                y1 = labels[neighbor][4].second;
+                line(copy, PURPLE, x0, y0, x1, y1);
+            }
+        }
+        cout<<endl;
+    }
 
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
