@@ -8,6 +8,7 @@
 #include <qlabel.h>
 #include <qpainter.h>
 #include <set>
+#include <queue>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -20,7 +21,10 @@
 #define BLACK qRgb(0, 0, 0)
 #define WHITE qRgb(255, 255, 255)
 #define YELLOW qRgb(255,255,0)
+#define PURPLE qRgb(138,43,226)
+#define ORANGE qRgb(255,140,0)
 #define LINECOLOR GREEN
+#define CLOSESTCOLOR ORANGE
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -266,12 +270,13 @@ void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    while (true) {
        if (x0==x1 && y0==y1) break;
        QRgb current  = image.pixelColor(x0, y0).rgb();
-       if (current != QRgb(BLACK)) {
+       if (current != QRgb(BLACK) && current != color) {
            image.setPixel(x0, y0, color);
-//           image.setPixel(x0, y0-1, color);
-//           image.setPixel(x0, y0+1, color);
-//           image.setPixel(x0+1, y0, color);
-//           image.setPixel(x0-1, y0, color);
+           image.setPixel(x0+1, y0, color);
+           image.setPixel(x0-1, y0, color);
+           image.setPixel(x0, y0+1, color);
+           image.setPixel(x0, y0-1, color);
+
        }
        double e2 = 2*err;
        if (e2 >= dy)  {
@@ -450,6 +455,8 @@ void MainWindow::on_openFile_clicked()
 
     struct Graph {
         vector<Node> nodes;
+        priority_queue<pair<int, pair<int, int>>> closest;
+
     } graph;
     clean(copy);
     set<int> vis;
@@ -484,11 +491,39 @@ void MainWindow::on_openFile_clicked()
         }
         graph.nodes.push_back(node);
     }
+
+    //Par de nodos más cercanos
+    int x0, y0, x1, y1;
+    set<pair<int, int>> visited;
+    for(int i = 0; i < sz; ++i) {
+        Node node1 = graph.nodes[i];
+        x0 = node1.x;
+        y0 = node1.y;
+        for(int j = 0; j < sz; ++j) {
+            if (i != j && visited.count(make_pair(i, j)) == 0) {
+                Node node2 = graph.nodes[j];
+                x1 = node2.x;
+                y1 = node2.y;
+                int distance = sqrt(pow((x1-x0), 2) + pow((y1-y0), 2));
+                cout << i << "->" << j << endl;
+                cout << distance << endl;
+                graph.closest.push(make_pair(-distance, make_pair(i, j)));
+                visited.insert(make_pair(i, j));
+            }
+        }
+    }
+    if (sz > 1) {
+        pair<int, pair<int,int>> top = graph.closest.top();
+        pair<int, int> node1 =  labels[top.second.first][4];
+        pair<int, int> node2 =  labels[top.second.second][4];
+        deleteFigure(copy, BLACK, node1, CLOSESTCOLOR);
+        deleteFigure(copy, BLACK, node2, CLOSESTCOLOR);
+    }
     for(int i = 0; i < sz; ++i) {
         QPainter p(&copy);
         p.setPen(QPen(Qt::white));
         p.setFont(QFont("Times", 16, QFont::Bold));
-        p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+5), QString::fromStdString(to_string(i+1)));
+        p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+7), QString::fromStdString(to_string(i+1)));
         p.end();
 
     }
