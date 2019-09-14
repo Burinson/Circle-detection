@@ -7,6 +7,7 @@
 #include <math.h>
 #include <qlabel.h>
 #include <qpainter.h>
+#include <set>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -160,7 +161,7 @@ pair<int, int> searchColor(QImage image, QRgb color) {
 bool edge(QImage image, pair<int, int> p) {
     return (!image.valid(TOP(p)) || !image.valid(RIGHT(p)) || !image.valid(BOTTOM(p)) || !image.valid(LEFT(p)));
 }
-void deleteFigure(QImage &image, QRgb color, pair<int, int> s, QRgb(deletionColor)) {
+void deleteFigure(QImage &image, QRgb color, pair<int, int> s, QRgb deletionColor) {
     stack<pair<int, int>> queue;
     queue.push(s);
 
@@ -277,6 +278,43 @@ void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    }
 }
 
+vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
+   vector<pair<int,int>> edge;
+   bool outside = false;
+   int cnt  = 0;
+   double dx =  abs(x1-x0);
+   double sx = x0<x1 ? 1 : -1;
+   double dy = -abs(y1-y0);
+   double sy = y0<y1 ? 1 : -1;
+   double err = dx+dy;
+   while (true) {
+       if (x0==x1 && y0==y1) break;
+       QRgb current = image.pixelColor(x0,y0).rgb();
+       if (current == QRgb(WHITE) && !outside) {
+           outside = true;
+           cnt++;
+       } else if (current != QRgb(WHITE) && outside && current != QRgb(PURPLE)) {
+           outside = false;
+       }
+       if(cnt > 1) {
+           cout << cnt << " ";
+           return {make_pair(-1, -1)};
+       }
+       edge.push_back(make_pair(x0,y0));
+       double e2 = 2*err;
+       if (e2 >= dy)  {
+           err += dy;
+           x0 += sx;
+       }
+       if (e2 <= dx) {
+           err += dx;
+           y0 += sy;
+       }
+   }
+   cout << cnt << " ";
+   return edge;
+}
+
 void MainWindow::on_openFile_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
@@ -336,23 +374,23 @@ void MainWindow::on_openFile_clicked()
         // Entonces es círculo
         if (diff <= 10 && image.pixelColor(center.first, center.second).rgb() != QRgb(WHITE)){
             //Dibujar radio
-            drawLine(copy, top, center, YELLOW);
-            drawLine(copy, right, center, YELLOW);
-            drawLine(copy, bot, center, YELLOW);
-            drawLine(copy, left, center, YELLOW);
+//            drawLine(copy, top, center, YELLOW);
+//            drawLine(copy, right, center, YELLOW);
+//            drawLine(copy, bot, center, YELLOW);
+//            drawLine(copy, left, center, YELLOW);
 
 
             // Dibujar Centroide
-            QRgb centroidColor = RED;
-            copy.setPixel(center.first, center.second, centroidColor);
-            copy.setPixel(TOP(center), centroidColor);
-            copy.setPixel(RIGHT(center), centroidColor);
-            copy.setPixel(BOTTOM(center), centroidColor);
-            copy.setPixel(LEFT(center), centroidColor);
-            copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
-            copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
-            copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
-            copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
+//            QRgb centroidColor = RED;
+//            copy.setPixel(center.first, center.second, centroidColor);
+//            copy.setPixel(TOP(center), centroidColor);
+//            copy.setPixel(RIGHT(center), centroidColor);
+//            copy.setPixel(BOTTOM(center), centroidColor);
+//            copy.setPixel(LEFT(center), centroidColor);
+//            copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
+//            copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
+//            copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
+//            copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
 
             QStringList coordinates;
             coordinates << QString::fromStdString(to_string(top.first)) + ", " + QString::fromStdString(to_string(top.second));
@@ -387,35 +425,60 @@ void MainWindow::on_openFile_clicked()
             coordinates << "Radio \n" + QString::fromStdString(to_string(labels[i][5].first));
             model->setData(index, coordinates[j]);
             // Caja verde
-            drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
+            //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
         }
     }
+
+    struct Edge {
+        vector<pair<int, int>> line;
+    };
+
+    struct Node {
+        int id;
+        int x;
+        int y;
+        vector<Node> neighbors;
+        vector<Edge> edges;
+    };
+
+    struct Graph {
+        vector<Node> nodes;
+    } graph;
+    clean(copy);
+    set<int> vis;
     int sz = labels.size();
-    vector<vector<int>> graph;
     for(int i = 0; i < sz; ++i) {
-        vector<int> neighbors;
+        Node node;
+        node.id = i;
+        vis.insert(i);
+        node.x = labels[i][4].first;
+        node.y = labels[i][4].second;
         for(int j = 0; j < sz; ++j) {
             if (i != j) {
-                neighbors.push_back(j);
+                Node neighbor;
+                neighbor.id = j;
+                neighbor.x = labels[j][4].first;
+                neighbor.y = labels[j][4].second;
+                Edge edge;
+                cout << "nodo " << i << " vecino " << j << endl;
+                edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
+                cout << endl;
+                if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
+                    node.edges.push_back(edge); // Crea una arista de nodo a vecino
+                    node.neighbors.push_back(neighbor);
+                    line(copy, PURPLE, node.x, node.y, neighbor.x, neighbor.y);
+                }
             }
         }
-        graph.push_back(neighbors);
+        graph.nodes.push_back(node);
     }
-    int x0, x1, y0, y1;
-    vector<bool> vis(sz);
-    for(int node = 0; node < sz; ++node) {
-        cout<<labels[node][4].first<<" "<<labels[node][4].second<<endl;
-        for(auto neighbor : graph[node]) {
-            cout<<labels[neighbor][4].first<<","<<labels[neighbor][4].second<<" ";
-            if (!vis[neighbor]) {
-                x0 = labels[node][4].first;
-                y0 = labels[node][4].second;
-                x1 = labels[neighbor][4].first;
-                y1 = labels[neighbor][4].second;
-                line(copy, PURPLE, x0, y0, x1, y1);
-            }
-        }
-        cout<<endl;
+    for(int i = 0; i < sz; ++i) {
+        QPainter p(&copy);
+        p.setPen(QPen(Qt::white));
+        p.setFont(QFont("Times", 16, QFont::Bold));
+        p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+5), QString::fromStdString(to_string(i+1)));
+        p.end();
+
     }
 
     graphic = new QGraphicsScene(this);
