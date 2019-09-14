@@ -20,7 +20,7 @@
 #define BLACK qRgb(0, 0, 0)
 #define WHITE qRgb(255, 255, 255)
 #define YELLOW qRgb(255,255,0)
-#define PURPLE qRgb(77, 0, 102)
+#define LINECOLOR GREEN
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -220,9 +220,9 @@ int separator(QImage &image, QRgb color, pair<int, int> s, int colorChange, int 
 
 bool isNoise(QColor color) {
     return (((color.red() == color.green() && (color.green() == color.blue())))
-            && (color.red() > 0 && color.red() < 255)
-            && (color.green() > 0 && color.green() < 255)
-            && (color.blue() > 0 && color.blue() < 255));
+            && (color.red() > 0 && color.red() < 254)
+            && (color.green() > 0 && color.green() < 254)
+            && (color.blue() > 0 && color.blue() < 254));
 }
 void clean(QImage &image) {
     for(int y = 0; y < image.height(); ++y)
@@ -265,7 +265,14 @@ void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    double err = dx+dy;
    while (true) {
        if (x0==x1 && y0==y1) break;
-       image.setPixel(x0, y0, color);
+       QRgb current  = image.pixelColor(x0, y0).rgb();
+       if (current != QRgb(BLACK)) {
+           image.setPixel(x0, y0, color);
+//           image.setPixel(x0, y0-1, color);
+//           image.setPixel(x0, y0+1, color);
+//           image.setPixel(x0+1, y0, color);
+//           image.setPixel(x0-1, y0, color);
+       }
        double e2 = 2*err;
        if (e2 >= dy)  {
            err += dy;
@@ -293,7 +300,7 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
        if (current == QRgb(WHITE) && !outside) {
            outside = true;
            cnt++;
-       } else if (current != QRgb(WHITE) && outside && current != QRgb(PURPLE)) {
+       } else if (current != QRgb(WHITE) && outside && current != QRgb(LINECOLOR)) {
            outside = false;
        }
        if(cnt > 1) {
@@ -318,7 +325,7 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
 void MainWindow::on_openFile_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa1", tr("Image Files (*.png)"));
+        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa2", tr("Image Files (*.png)"));
     QImage image = QImage(fileName);
     QImage copy = image;
     QGraphicsScene *graphic = new QGraphicsScene(this);
@@ -459,14 +466,19 @@ void MainWindow::on_openFile_clicked()
                 neighbor.id = j;
                 neighbor.x = labels[j][4].first;
                 neighbor.y = labels[j][4].second;
-                Edge edge;
-                cout << "nodo " << i << " vecino " << j << endl;
-                edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
-                cout << endl;
-                if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
-                    node.edges.push_back(edge); // Crea una arista de nodo a vecino
+                if (true) {
+                    Edge edge;
+                    cout << i+1 << "->" << j+1 << endl;
+                    edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
+                    cout << endl;
+                    if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
+                        node.edges.push_back(edge); // Crea una arista de nodo a vecino
+                        node.neighbors.push_back(neighbor);
+                        line(copy, LINECOLOR, node.x, node.y, neighbor.x, neighbor.y);
+                    }
                     node.neighbors.push_back(neighbor);
-                    line(copy, PURPLE, node.x, node.y, neighbor.x, neighbor.y);
+
+
                 }
             }
         }
