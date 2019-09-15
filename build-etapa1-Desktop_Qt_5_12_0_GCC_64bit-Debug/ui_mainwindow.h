@@ -37,6 +37,7 @@ public:
     QGraphicsView *graphicsViewOriginal;
     QGraphicsView *graphicsViewResult;
     QTableView *tableView;
+    QTableView *tableView_2;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -79,6 +80,11 @@ public:
         tableView->setObjectName(QString::fromUtf8("tableView"));
 
         gridLayout_2->addWidget(tableView, 1, 0, 1, 1, Qt::AlignBottom);
+
+        tableView_2 = new QTableView(tab);
+        tableView_2->setObjectName(QString::fromUtf8("tableView_2"));
+
+        gridLayout_2->addWidget(tableView_2, 1, 1, 1, 1, Qt::AlignBottom);
 
         tabWidget->addTab(tab, QString());
 

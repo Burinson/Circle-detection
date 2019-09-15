@@ -245,7 +245,8 @@ DIST          = ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/spec_pre
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/exceptions.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/yacc.prf \
 		../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/lex.prf \
-		../etapa1/etapa1.pro ../etapa1/mainwindow.h ../etapa1/main.cpp \
+		../etapa1/etapa1.pro ../etapa1/graph.h \
+		../etapa1/mainwindow.h ../etapa1/main.cpp \
 		../etapa1/mainwindow.cpp
 QMAKE_TARGET  = etapa1
 DESTDIR       = 
@@ -662,7 +663,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../../../../Downloads/Qt/5.12.0/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../etapa1/mainwindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../etapa1/graph.h ../etapa1/mainwindow.h $(DISTDIR)/
 	$(COPY_FILE) --parents ../etapa1/main.cpp ../etapa1/mainwindow.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../etapa1/mainwindow.ui $(DISTDIR)/
 
@@ -1127,7 +1128,8 @@ mainwindow.o: ../etapa1/mainwindow.cpp ../etapa1/mainwindow.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtCore/qt_windows.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qopengles2ext.h \
 		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtGui/qopenglext.h \
-		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlabel.h
+		../../../../Downloads/Qt/5.12.0/gcc_64/include/QtWidgets/qlabel.h \
+		../etapa1/graph.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../etapa1/mainwindow.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 

@@ -9,6 +9,7 @@
 #include <qpainter.h>
 #include <set>
 #include <queue>
+#include <graph.h>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -23,6 +24,7 @@
 #define YELLOW qRgb(255,255,0)
 #define PURPLE qRgb(138,43,226)
 #define ORANGE qRgb(255,140,0)
+#define CRIMSON qRgb(220,20,60)
 #define LINECOLOR GREEN
 #define CLOSESTCOLOR ORANGE
 
@@ -290,9 +292,24 @@ void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    }
 }
 
+bool adjObstacle(QImage image, int x, int y) {
+    int cnt  = 0;
+    int xpos[4] = {0, 1, 0, -1};
+    int ypos[4] = {-1, 0, 1, 0};
+    for(int i = 0; i < 5; ++i) {
+        cnt += image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(WHITE) && image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(LINECOLOR);
+    }
+    return cnt >= 2;
+}
+bool obstacle(QImage image, int x, int y) {
+    return (image.pixelColor(x,y).rgb() != QRgb(WHITE) && image.pixelColor(x,y).rgb() != QRgb(LINECOLOR));
+}
 vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
    vector<pair<int,int>> edge;
    bool outside = false;
+   bool straightLine = false;
+   if (x0 == x1 || y1 == y0)
+       straightLine = true;
    int cnt  = 0;
    double dx =  abs(x1-x0);
    double sx = x0<x1 ? 1 : -1;
@@ -305,11 +322,12 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
        if (current == QRgb(WHITE) && !outside) {
            outside = true;
            cnt++;
-       } else if (current != QRgb(WHITE) && outside && current != QRgb(LINECOLOR)) {
+       } else if (straightLine && outside && obstacle(image, x0, y0)) {
+           outside = false;
+       } else if (!straightLine && outside && (obstacle(image, x0, y0) || adjObstacle(image, x0, y0))){
            outside = false;
        }
        if(cnt > 1) {
-           cout << cnt << " ";
            return {make_pair(-1, -1)};
        }
        edge.push_back(make_pair(x0,y0));
@@ -323,7 +341,6 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
            y0 += sy;
        }
    }
-   cout << cnt << " ";
    return edge;
 }
 
@@ -441,30 +458,14 @@ void MainWindow::on_openFile_clicked()
         }
     }
 
-    struct Edge {
-        vector<pair<int, int>> line;
-    };
-
-    struct Node {
-        int id;
-        int x;
-        int y;
-        vector<Node> neighbors;
-        vector<Edge> edges;
-    };
-
-    struct Graph {
-        vector<Node> nodes;
-        priority_queue<pair<int, pair<int, int>>> closest;
-
-    } graph;
     clean(copy);
-    set<int> vis;
+    // Computar grafo
+    Graph graph;
+    set<pair<int,int>> vis;
     int sz = labels.size();
     for(int i = 0; i < sz; ++i) {
         Node node;
         node.id = i;
-        vis.insert(i);
         node.x = labels[i][4].first;
         node.y = labels[i][4].second;
         for(int j = 0; j < sz; ++j) {
@@ -473,11 +474,9 @@ void MainWindow::on_openFile_clicked()
                 neighbor.id = j;
                 neighbor.x = labels[j][4].first;
                 neighbor.y = labels[j][4].second;
-                if (true) {
+                if (vis.count(make_pair(i, j)) == 0) {
                     Edge edge;
-                    cout << i+1 << "->" << j+1 << endl;
                     edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
-                    cout << endl;
                     if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
                         node.edges.push_back(edge); // Crea una arista de nodo a vecino
                         node.neighbors.push_back(neighbor);
@@ -487,6 +486,7 @@ void MainWindow::on_openFile_clicked()
 
 
                 }
+                vis.insert(make_pair(i, j));
             }
         }
         graph.nodes.push_back(node);
@@ -505,13 +505,12 @@ void MainWindow::on_openFile_clicked()
                 x1 = node2.x;
                 y1 = node2.y;
                 int distance = sqrt(pow((x1-x0), 2) + pow((y1-y0), 2));
-                cout << i << "->" << j << endl;
-                cout << distance << endl;
                 graph.closest.push(make_pair(-distance, make_pair(i, j)));
                 visited.insert(make_pair(i, j));
             }
         }
     }
+    // Colorear par de nodos más cercanos
     if (sz > 1) {
         pair<int, pair<int,int>> top = graph.closest.top();
         pair<int, int> node1 =  labels[top.second.first][4];
@@ -519,14 +518,32 @@ void MainWindow::on_openFile_clicked()
         deleteFigure(copy, BLACK, node1, CLOSESTCOLOR);
         deleteFigure(copy, BLACK, node2, CLOSESTCOLOR);
     }
+    // Etiquetas de nodos
     for(int i = 0; i < sz; ++i) {
         QPainter p(&copy);
         p.setPen(QPen(Qt::white));
         p.setFont(QFont("Times", 16, QFont::Bold));
         p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+7), QString::fromStdString(to_string(i+1)));
         p.end();
-
     }
+//    QModelIndex index2;
+//    model2 = new QStandardItemModel(sz, sz, this);
+//    for(int i = 0; i < sz; ++i) {
+//        for(int j = 0; j < sz; ++j) {
+//            ui->tableView_2->setModel(model2);
+//            index2 = model2->index(i, j, QModelIndex());
+//            QStringList coordinates;
+//            if (visited.count(make_pair(i, j))) {
+//                coordinates  "X";
+
+//            } else {
+//            }
+
+//            model2->setData(index, coordinates[j]);
+//            // Caja verde
+//            //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
+//        }
+//    }
 
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
