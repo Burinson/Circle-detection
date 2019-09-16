@@ -27,6 +27,7 @@
 #define PURPLE qRgb(138,43,226)
 #define ORANGE qRgb(255,140,0)
 #define CRIMSON qRgb(220,20,60)
+#define GHOST qRgb(255,254,255)
 #define LINECOLOR GREEN
 #define CLOSESTCOLOR ORANGE
 
@@ -428,25 +429,6 @@ void MainWindow::on_openFile_clicked()
             }
     }
 }
-    QModelIndex index;
-    for(int i = 0; i < labels.size(); ++i) {
-        for(int j = 0; j < 6; ++j) {
-            ui->tableView->setModel(model);
-            index = model->index(i, j, QModelIndex());
-            QStringList coordinates;
-            coordinates << "Arriba \n" + QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
-            coordinates << "Derecha \n" + QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
-            coordinates << "Abajo \n" + QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
-            coordinates << "Izquierda \n" + QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
-            coordinates << "Centro \n" + QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
-            coordinates << "Radio \n" + QString::fromStdString(to_string(labels[i][5].first));
-            model->setData(index, coordinates[j]);
-            // Caja verde
-            //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
-
-        }
-    }
-
     clean(copy);
     int sz = labels.size();
     Graph graph;
@@ -465,20 +447,46 @@ void MainWindow::on_openFile_clicked()
             }
         }
     }
+    //Crear tabla de info
+    QModelIndex index;
+    for(int i = 0; i < labels.size(); ++i) {
+        for(int j = 0; j < 6; ++j) {
+            ui->tableView->setModel(model);
+            if (!trash.count(i)) {
+                index = model->index(i, j, QModelIndex());
+                QStringList coordinates;
+                coordinates << "Arriba \n" + QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
+                coordinates << "Derecha \n" + QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
+                coordinates << "Abajo \n" + QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
+                coordinates << "Izquierda \n" + QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
+                coordinates << "Centro \n" + QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
+                coordinates << "Radio \n" + QString::fromStdString(to_string(labels[i][5].first));
+                model->setData(index, coordinates[j]);
+                // Caja verde
+                //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
+            }
+
+        }
+    }
+
 
     for(int i : trash) {
-        deleteFigure(copy, BLACK, labels[i][0], WHITE);
+        deleteFigure(copy, BLACK, labels[i][0], GHOST);
     }
 
     // Computar grafo
     set<pair<int,int>> vis;
+    model2 = new QStandardItemModel(circles, circles, this);
     for(int i = 0; i < sz; ++i) {
         Node node;
         node.id = i;
         node.x = labels[i][4].first;
         node.y = labels[i][4].second;
         for(int j = 0; j < sz; ++j) {
+            ui->tableView_2->setModel(model2);
             if (i != j && !trash.count(i) && !trash.count(j)) {
+                index = model2->index(i, j, QModelIndex());
+                QStringList adj;
                 Node neighbor;
                 neighbor.id = j;
                 neighbor.x = labels[j][4].first;
@@ -488,15 +496,23 @@ void MainWindow::on_openFile_clicked()
                     edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
                     if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
                         node.edges.push_back(edge); // asigna una arista a el nodo
+                        adj << "✓";
                         line(copy, LINECOLOR, node.x, node.y, neighbor.x, neighbor.y); // dibuja la arista
-                    } else
-                        node.neighbors.push_back(neighbor);
+                    } else {
+                        adj << "";
+                    }
+                    node.neighbors.push_back(neighbor);
                     vis.insert(make_pair(i, j));
                 }
+                model2->setData(index, adj);
             }
     }
         graph.nodes.push_back(node);
 }
+    ui->tableView_2->resizeColumnsToContents();
+
+
+
     //Par de nodos más cercanos
     if (sz > 1 && trash.size() < sz-1) {
 
