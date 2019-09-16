@@ -10,6 +10,8 @@
 #include <set>
 #include <queue>
 #include <graph.h>
+#include <QMouseEvent>
+#include <deque>
 
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
@@ -256,6 +258,7 @@ void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, 
     p.end();
 }
 
+
 int sign(double x) {
     if (x < 0) {
         return -1;
@@ -346,8 +349,11 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
 
 void MainWindow::on_openFile_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa2", tr("Image Files (*.png)"));
+    if (openFile) {
+        fileName = QFileDialog::getOpenFileName(this,
+            tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa2", tr("Image Files (*.png)"));
+        trash = set<int>();
+    }
     QImage image = QImage(fileName);
     QImage copy = image;
     QGraphicsScene *graphic = new QGraphicsScene(this);
@@ -402,24 +408,6 @@ void MainWindow::on_openFile_clicked()
         }
         // Entonces es círculo
         if (diff <= 10 && image.pixelColor(center.first, center.second).rgb() != QRgb(WHITE)){
-            //Dibujar radio
-//            drawLine(copy, top, center, YELLOW);
-//            drawLine(copy, right, center, YELLOW);
-//            drawLine(copy, bot, center, YELLOW);
-//            drawLine(copy, left, center, YELLOW);
-
-
-            // Dibujar Centroide
-//            QRgb centroidColor = RED;
-//            copy.setPixel(center.first, center.second, centroidColor);
-//            copy.setPixel(TOP(center), centroidColor);
-//            copy.setPixel(RIGHT(center), centroidColor);
-//            copy.setPixel(BOTTOM(center), centroidColor);
-//            copy.setPixel(LEFT(center), centroidColor);
-//            copy.setPixel(TOP(make_pair(center.first, center.second-1)), centroidColor);
-//            copy.setPixel(RIGHT(make_pair(center.first+1, center.second)), centroidColor);
-//            copy.setPixel(BOTTOM(make_pair(center.first, center.second+1)), centroidColor);
-//            copy.setPixel(LEFT(make_pair(center.first-1, center.second)), centroidColor);
 
             QStringList coordinates;
             coordinates << QString::fromStdString(to_string(top.first)) + ", " + QString::fromStdString(to_string(top.second));
@@ -455,44 +443,63 @@ void MainWindow::on_openFile_clicked()
             model->setData(index, coordinates[j]);
             // Caja verde
             //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
+
         }
     }
 
     clean(copy);
-    // Computar grafo
-    Graph graph;
-    set<pair<int,int>> vis;
     int sz = labels.size();
+    Graph graph;
+    if (!openFile) {
+        int d, r, xp, xc, yp, yc;
+        for(int i = 0; i < sz; ++i) {
+            xp = deletex;
+            xc =labels[i][4].first;
+            yp = deletey;
+            yc = labels[i][4].second;
+            r = labels[i][5].first;
+            d = sqrt(pow(xp-xc, 2) + pow(yp-yc, 2));
+            if (d < r) {
+                trash.insert(i); // Manda a la basura los nodos seleccionados
+                break;
+            }
+        }
+    }
+
+    for(int i : trash) {
+        deleteFigure(copy, BLACK, labels[i][0], WHITE);
+    }
+
+    // Computar grafo
+    set<pair<int,int>> vis;
     for(int i = 0; i < sz; ++i) {
         Node node;
         node.id = i;
         node.x = labels[i][4].first;
         node.y = labels[i][4].second;
         for(int j = 0; j < sz; ++j) {
-            if (i != j) {
+            if (i != j && !trash.count(i) && !trash.count(j)) {
                 Node neighbor;
                 neighbor.id = j;
                 neighbor.x = labels[j][4].first;
                 neighbor.y = labels[j][4].second;
-                if (vis.count(make_pair(i, j)) == 0) {
+                if (!vis.count(make_pair(i, j))) {
                     Edge edge;
                     edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
                     if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
-                        node.edges.push_back(edge); // Crea una arista de nodo a vecino
+                        node.edges.push_back(edge); // asigna una arista a el nodo
+                        line(copy, LINECOLOR, node.x, node.y, neighbor.x, neighbor.y); // dibuja la arista
+                    } else
                         node.neighbors.push_back(neighbor);
-                        line(copy, LINECOLOR, node.x, node.y, neighbor.x, neighbor.y);
-                    }
-                    node.neighbors.push_back(neighbor);
-
-
+                    vis.insert(make_pair(i, j));
                 }
-                vis.insert(make_pair(i, j));
             }
-        }
-        graph.nodes.push_back(node);
     }
-
+        graph.nodes.push_back(node);
+}
     //Par de nodos más cercanos
+    if (sz > 1 && trash.size() < sz-1) {
+
     int x0, y0, x1, y1;
     set<pair<int, int>> visited;
     for(int i = 0; i < sz; ++i) {
@@ -500,7 +507,7 @@ void MainWindow::on_openFile_clicked()
         x0 = node1.x;
         y0 = node1.y;
         for(int j = 0; j < sz; ++j) {
-            if (i != j && visited.count(make_pair(i, j)) == 0) {
+            if (i != j && !visited.count(make_pair(i, j)) && !trash.count(i) && !trash.count(j)) {
                 Node node2 = graph.nodes[j];
                 x1 = node2.x;
                 y1 = node2.y;
@@ -511,7 +518,6 @@ void MainWindow::on_openFile_clicked()
         }
     }
     // Colorear par de nodos más cercanos
-    if (sz > 1) {
         pair<int, pair<int,int>> top = graph.closest.top();
         pair<int, int> node1 =  labels[top.second.first][4];
         pair<int, int> node2 =  labels[top.second.second][4];
@@ -526,29 +532,30 @@ void MainWindow::on_openFile_clicked()
         p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+7), QString::fromStdString(to_string(i+1)));
         p.end();
     }
-//    QModelIndex index2;
-//    model2 = new QStandardItemModel(sz, sz, this);
-//    for(int i = 0; i < sz; ++i) {
-//        for(int j = 0; j < sz; ++j) {
-//            ui->tableView_2->setModel(model2);
-//            index2 = model2->index(i, j, QModelIndex());
-//            QStringList coordinates;
-//            if (visited.count(make_pair(i, j))) {
-//                coordinates  "X";
-
-//            } else {
-//            }
-
-//            model2->setData(index, coordinates[j]);
-//            // Caja verde
-//            //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
-//        }
-//    }
 
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(copy));
     ui->graphicsViewResult->setScene(graphic);
+
+
+    openFile = true;
 }
+
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+    if(event->button() == Qt::LeftButton)
+    {
+        QPoint origin = ui->graphicsViewResult->mapFromGlobal(QCursor::pos());
+        QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
+        qDebug() << relativeOrigin;
+
+        deletex = int(relativeOrigin.x());
+        deletey = int(relativeOrigin.y());
+        openFile = false;
+        on_openFile_clicked();
+
+    }
+}
+
 
 
 

@@ -16,7 +16,7 @@ struct Node {
     int y;
     vector<Node> neighbors;
     vector<Edge> edges;
-};
+    };
 
 struct Graph {
     vector<Node> nodes;
