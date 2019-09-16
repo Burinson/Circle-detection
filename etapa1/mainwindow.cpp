@@ -365,7 +365,6 @@ void MainWindow::on_openFile_clicked()
     int circles = separator(copy, qRgb(2, 2, 2), searchColor(copy, BLACK), 2, 0, true);
 
     QRgb color;
-    model = new QStandardItemModel(circles, 6, this);
     vector<vector<pair<int, int>>> labels;
     for(int i = 1; i <= circles; ++i) {
         color = qRgb(2*i, 2*i, 2*i);
@@ -448,19 +447,24 @@ void MainWindow::on_openFile_clicked()
         }
     }
     //Crear tabla de info
+    model = new QStandardItemModel(labels.size(), 6, this);
+    QStringList headers;
+    headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro" << "Radio";
+    model->setHorizontalHeaderLabels(headers);
     QModelIndex index;
     for(int i = 0; i < labels.size(); ++i) {
         for(int j = 0; j < 6; ++j) {
             ui->tableView->setModel(model);
             if (!trash.count(i)) {
                 index = model->index(i, j, QModelIndex());
+                model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
                 QStringList coordinates;
-                coordinates << "Arriba \n" + QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
-                coordinates << "Derecha \n" + QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
-                coordinates << "Abajo \n" + QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
-                coordinates << "Izquierda \n" + QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
-                coordinates << "Centro \n" + QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
-                coordinates << "Radio \n" + QString::fromStdString(to_string(labels[i][5].first));
+                coordinates << QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
+                coordinates << QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
+                coordinates << QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
+                coordinates << QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
+                coordinates << QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
+                coordinates << QString::fromStdString(to_string(labels[i][5].first));
                 model->setData(index, coordinates[j]);
                 // Caja verde
                 //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
@@ -468,7 +472,7 @@ void MainWindow::on_openFile_clicked()
 
         }
     }
-
+    ui->tableView->resizeRowsToContents();
 
     for(int i : trash) {
         deleteFigure(copy, BLACK, labels[i][0], GHOST);
@@ -476,7 +480,7 @@ void MainWindow::on_openFile_clicked()
 
     // Computar grafo
     set<pair<int,int>> vis;
-    model2 = new QStandardItemModel(circles, circles, this);
+    model2 = new QStandardItemModel(sz, sz, this);
     for(int i = 0; i < sz; ++i) {
         Node node;
         node.id = i;
@@ -486,6 +490,8 @@ void MainWindow::on_openFile_clicked()
             ui->tableView_2->setModel(model2);
             if (i != j && !trash.count(i) && !trash.count(j)) {
                 index = model2->index(i, j, QModelIndex());
+                model2->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
+
                 QStringList adj;
                 Node neighbor;
                 neighbor.id = j;
@@ -510,6 +516,7 @@ void MainWindow::on_openFile_clicked()
         graph.nodes.push_back(node);
 }
     ui->tableView_2->resizeColumnsToContents();
+    ui->tableView_2->resizeRowsToContents();
 
 
 
