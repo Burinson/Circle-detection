@@ -240,33 +240,6 @@ void clean(QImage &image) {
                 image.setPixel(x, y, BLACK);
 }
 
-void drawBox(QImage &image, pair<int, int> top, pair<int, int> right, pair<int, int> down, pair<int, int> left, int id) {
-    pair<int, int> topLeft, topRight, bottomLeft,bottomRight;
-    topLeft = make_pair(left.first-5, top.second-5);
-    topRight = make_pair(right.first+5, top.second-5);
-    bottomLeft = make_pair(left.first-5, down.second+5);
-    bottomRight = make_pair(right.first+5, down.second+5);
-
-    drawLine(image, topLeft, topRight, GREEN);
-    drawLine(image, topRight, bottomRight, GREEN);
-    drawLine(image, bottomRight, bottomLeft, GREEN);
-    drawLine(image, bottomLeft, topLeft, GREEN);
-
-    QPainter p(&image);
-    p.setPen(QPen(Qt::red));
-    p.setFont(QFont("Times", 16, QFont::Bold));
-    p.drawText(QPointF(topLeft.first, topRight.second+5), QString::fromStdString(to_string(id)));
-    p.end();
-}
-
-
-int sign(double x) {
-    if (x < 0) {
-        return -1;
-    } else {
-        return 1;
-    }
-}
 void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    double dx =  abs(x1-x0);
    double sx = x0<x1 ? 1 : -1;
@@ -303,6 +276,7 @@ bool adjObstacle(QImage image, int x, int y) {
     for(int i = 0; i < 5; ++i) {
         cnt += image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(WHITE) && image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(LINECOLOR);
     }
+    qDebug() << cnt;
     return cnt >= 2;
 }
 bool obstacle(QImage image, int x, int y) {
@@ -447,12 +421,16 @@ void MainWindow::on_openFile_clicked()
         }
     }
     //Crear tabla de info
-    model = new QStandardItemModel(labels.size(), 6, this);
-    QStringList headers;
+    model = new QStandardItemModel(sz, 6, this);
+    QStringList headers, ids;
     headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro" << "Radio";
     model->setHorizontalHeaderLabels(headers);
+    for(Node node : graph.nodes){
+        ids << QString::fromStdString(to_string(node.id));
+    }
+    model->setVerticalHeaderLabels(ids);
     QModelIndex index;
-    for(int i = 0; i < labels.size(); ++i) {
+    for(int i = 0; i < sz; ++i) {
         for(int j = 0; j < 6; ++j) {
             ui->tableView->setModel(model);
             if (!trash.count(i)) {
@@ -466,8 +444,6 @@ void MainWindow::on_openFile_clicked()
                 coordinates << QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
                 coordinates << QString::fromStdString(to_string(labels[i][5].first));
                 model->setData(index, coordinates[j]);
-                // Caja verde
-                //drawBox(copy, labels[i][0], labels[i][1], labels[i][2], labels[i][3], i+1);
             }
 
         }
@@ -475,7 +451,7 @@ void MainWindow::on_openFile_clicked()
     ui->tableView->resizeRowsToContents();
 
     for(int i : trash) {
-        deleteFigure(copy, BLACK, labels[i][0], GHOST);
+        deleteFigure(copy, BLACK, labels[i][0], WHITE);
     }
 
     // Computar grafo
@@ -562,6 +538,7 @@ void MainWindow::on_openFile_clicked()
 
 
     openFile = true;
+    ordered = false;
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
@@ -579,7 +556,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-
-
-
-
+void MainWindow::on_order_clicked()
+{
+    ordered = true;
+    on_openFile_clicked();
+}

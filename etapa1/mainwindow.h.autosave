@@ -32,6 +32,7 @@ private:
     QStandardItemModel *model2;
     QString fileName;
     bool openFile = true;
+    bool ordered = false;
     set<int> trash;
     int deletex;
     int deletey;
