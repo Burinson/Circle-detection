@@ -22,8 +22,7 @@ public:
 private slots:
     void on_openFile_clicked();
     void mousePressEvent(QMouseEvent *event);
-
-
+    void setTable();
     void on_order_clicked();
 
 private:
@@ -32,9 +31,12 @@ private:
     QStandardItemModel *model2;
     QString fileName;
     bool openFile = true;
+    bool ordered = false;
     set<int> trash;
     int deletex;
     int deletey;
+    vector<vector<pair<int, int>>> labels;
+
 };
 
 #endif // MAINWINDOW_H

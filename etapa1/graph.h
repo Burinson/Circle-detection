@@ -21,7 +21,6 @@ struct Node {
 struct Graph {
     vector<Node> nodes;
     priority_queue<pair<int, pair<int, int>>> closest;
-
 };
 
 #endif // GRAPH_H

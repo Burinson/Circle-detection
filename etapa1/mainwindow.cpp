@@ -276,7 +276,6 @@ bool adjObstacle(QImage image, int x, int y) {
     for(int i = 0; i < 5; ++i) {
         cnt += image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(WHITE) && image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(LINECOLOR);
     }
-    qDebug() << cnt;
     return cnt >= 2;
 }
 bool obstacle(QImage image, int x, int y) {
@@ -322,6 +321,51 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
    return edge;
 }
 
+struct compare {
+    bool operator()(vector<pair<int, int>> node1, vector<pair<int, int>> node2) {
+        return node1[5].first > node2[5].first;
+    }
+};
+
+void MainWindow::setTable()
+{
+    int sz = labels.size();
+    model = new QStandardItemModel(sz, 6, this);
+    QStringList headers, ids;
+    headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro" << "Radio";
+    model->setHorizontalHeaderLabels(headers);
+    vector<vector<pair<int, int>>> clone = labels;
+    if (ordered) {
+        compare cmp;
+        sort(clone.begin(), clone.end(), cmp);
+    }
+    for(vector<pair<int, int>> v : clone){
+
+        ids << QString::fromStdString(to_string(v[5].second+1));
+    }
+    model->setVerticalHeaderLabels(ids);
+    QModelIndex index;
+    for(int i = 0; i < sz; ++i) {
+        for(int j = 0; j < 6; ++j) {
+            ui->tableView->setModel(model);
+            if (!trash.count(i)) {
+                index = model->index(i, j, QModelIndex());
+                model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
+                QStringList coordinates;
+                coordinates << QString::fromStdString(to_string(clone[i][0].first)) + ", " + QString::fromStdString(to_string(clone[i][0].second));
+                coordinates << QString::fromStdString(to_string(clone[i][1].first)) + ", " + QString::fromStdString(to_string(clone[i][1].second));
+                coordinates << QString::fromStdString(to_string(clone[i][2].first)) + ", " + QString::fromStdString(to_string(clone[i][2].second));
+                coordinates << QString::fromStdString(to_string(clone[i][3].first)) + ", " + QString::fromStdString(to_string(clone[i][3].second));
+                coordinates << QString::fromStdString(to_string(clone[i][4].first)) + ", " + QString::fromStdString(to_string(clone[i][4].second));
+                coordinates << QString::fromStdString(to_string(clone[i][5].first));
+                model->setData(index, coordinates[j]);
+            }
+
+        }
+    }
+    ui->tableView->resizeRowsToContents();
+}
+
 void MainWindow::on_openFile_clicked()
 {
     if (openFile) {
@@ -330,6 +374,7 @@ void MainWindow::on_openFile_clicked()
         trash = set<int>();
     }
     QImage image = QImage(fileName);
+    labels = vector<vector<pair<int, int>>>();
     QImage copy = image;
     QGraphicsScene *graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(image));
@@ -339,7 +384,7 @@ void MainWindow::on_openFile_clicked()
     int circles = separator(copy, qRgb(2, 2, 2), searchColor(copy, BLACK), 2, 0, true);
 
     QRgb color;
-    vector<vector<pair<int, int>>> labels;
+    int id = 0;
     for(int i = 1; i <= circles; ++i) {
         color = qRgb(2*i, 2*i, 2*i);
         // Puntos fundamentales
@@ -397,8 +442,9 @@ void MainWindow::on_openFile_clicked()
                 v.push_back(bot);
                 v.push_back(left);
                 v.push_back(center);
-                v.push_back(make_pair((topRadio+leftRadio)/2, 0));
+                v.push_back(make_pair((topRadio+leftRadio)/2, id));
                 labels.push_back(v);
+                id++;
             }
     }
 }
@@ -420,42 +466,14 @@ void MainWindow::on_openFile_clicked()
             }
         }
     }
-    //Crear tabla de info
-    model = new QStandardItemModel(sz, 6, this);
-    QStringList headers, ids;
-    headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro" << "Radio";
-    model->setHorizontalHeaderLabels(headers);
-    for(Node node : graph.nodes){
-        ids << QString::fromStdString(to_string(node.id));
-    }
-    model->setVerticalHeaderLabels(ids);
-    QModelIndex index;
-    for(int i = 0; i < sz; ++i) {
-        for(int j = 0; j < 6; ++j) {
-            ui->tableView->setModel(model);
-            if (!trash.count(i)) {
-                index = model->index(i, j, QModelIndex());
-                model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
-                QStringList coordinates;
-                coordinates << QString::fromStdString(to_string(labels[i][0].first)) + ", " + QString::fromStdString(to_string(labels[i][0].second));
-                coordinates << QString::fromStdString(to_string(labels[i][1].first)) + ", " + QString::fromStdString(to_string(labels[i][1].second));
-                coordinates << QString::fromStdString(to_string(labels[i][2].first)) + ", " + QString::fromStdString(to_string(labels[i][2].second));
-                coordinates << QString::fromStdString(to_string(labels[i][3].first)) + ", " + QString::fromStdString(to_string(labels[i][3].second));
-                coordinates << QString::fromStdString(to_string(labels[i][4].first)) + ", " + QString::fromStdString(to_string(labels[i][4].second));
-                coordinates << QString::fromStdString(to_string(labels[i][5].first));
-                model->setData(index, coordinates[j]);
-            }
-
-        }
-    }
-    ui->tableView->resizeRowsToContents();
-
+    setTable();
     for(int i : trash) {
         deleteFigure(copy, BLACK, labels[i][0], WHITE);
     }
 
     // Computar grafo
     set<pair<int,int>> vis;
+    QModelIndex index;
     model2 = new QStandardItemModel(sz, sz, this);
     for(int i = 0; i < sz; ++i) {
         Node node;
@@ -538,7 +556,6 @@ void MainWindow::on_openFile_clicked()
 
 
     openFile = true;
-    ordered = false;
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
@@ -546,7 +563,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
     {
         QPoint origin = ui->graphicsViewResult->mapFromGlobal(QCursor::pos());
         QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
-        qDebug() << relativeOrigin;
 
         deletex = int(relativeOrigin.x());
         deletey = int(relativeOrigin.y());
@@ -556,8 +572,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
     }
 }
 
+
+
 void MainWindow::on_order_clicked()
 {
-    ordered = true;
-    on_openFile_clicked();
+    ordered = !ordered;
+    setTable();
 }
