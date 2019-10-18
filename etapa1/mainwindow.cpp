@@ -436,6 +436,7 @@ void MainWindow::on_openFile_clicked()
                 v.push_back(left);
                 v.push_back(center);
                 v.push_back(make_pair((topRadio+leftRadio)/2, id));
+                v.push_back(make_pair(true, true));
                 labels.push_back(v);
                 id++;
             }
@@ -572,13 +573,14 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
             yc = labels[i][4].second;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
             r = labels[i][5].first;
-            if (d <= r) {
+            if (d <= r && labels[i][6].first) {
                 QPainter p(&copy);
                 p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("dog.png"));
                 p.end();
                 graphic = new QGraphicsScene(this);
                 graphic->addPixmap(QPixmap::fromImage(copy));
                 ui->graphicsViewResult->setScene(graphic);
+                labels[i][6].first = false;
             }
         }
 

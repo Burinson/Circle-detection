@@ -12,17 +12,15 @@ struct Edge {
 
 struct Agent {
     int id;
-    int x;
-    int y;
-    Agent(int id, int x, int y)
+
+    Agent(int id)
     {
         this->id = id;
-        this->x = x;
-        this->y = y;
+
     }
     Agent() {
         this->id = -1;
-    };
+    }
 };
 
 struct Node {
@@ -32,7 +30,6 @@ struct Node {
     vector<Node> neighbors;
     vector<Edge> edges;
     bool free = true;
-    Agent agent;
     };
 
 struct Graph {
