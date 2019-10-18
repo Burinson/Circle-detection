@@ -2,9 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QGraphicsScene>
 #include <iostream>
 #include <qstandarditemmodel.h>
 #include <set>
+#include <graph.h>
+#include <QImage>
+
 using namespace std;
 
 namespace Ui {
@@ -36,7 +40,10 @@ private:
     int deletex;
     int deletey;
     vector<vector<pair<int, int>>> labels;
-
+    Graph g;
+    int agentId = 1;
+    QImage copy;
+    QGraphicsScene *graphic;
 };
 
 #endif // MAINWINDOW_H

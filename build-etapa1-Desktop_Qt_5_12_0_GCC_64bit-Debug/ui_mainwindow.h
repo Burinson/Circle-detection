@@ -30,6 +30,7 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QGridLayout *gridLayout;
+    QPushButton *pushButton;
     QTabWidget *tabWidget;
     QWidget *tab;
     QGridLayout *gridLayout_2;
@@ -38,7 +39,6 @@ public:
     QTableView *tableView;
     QTableView *tableView_2;
     QPushButton *openFile;
-    QPushButton *order;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -54,6 +54,11 @@ public:
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        pushButton = new QPushButton(centralWidget);
+        pushButton->setObjectName(QString::fromUtf8("pushButton"));
+
+        gridLayout->addWidget(pushButton, 3, 0, 1, 1);
+
         tabWidget = new QTabWidget(centralWidget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
         tab = new QWidget();
@@ -91,11 +96,6 @@ public:
 
         gridLayout->addWidget(openFile, 2, 0, 1, 1);
 
-        order = new QPushButton(centralWidget);
-        order->setObjectName(QString::fromUtf8("order"));
-
-        gridLayout->addWidget(order, 3, 0, 1, 1);
-
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -119,9 +119,9 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", nullptr));
+        pushButton->setText(QApplication::translate("MainWindow", "Comenzar juego", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MainWindow", "Ventana principal", nullptr));
         openFile->setText(QApplication::translate("MainWindow", "Cargar imagen", nullptr));
-        order->setText(QApplication::translate("MainWindow", "Ordenar", nullptr));
     } // retranslateUi
 
 };

@@ -269,24 +269,24 @@ void line(QImage &image, QRgb color, int x0, int y0, int x1, int y1) {
    }
 }
 
-bool adjObstacle(QImage image, int x, int y) {
-    int cnt  = 0;
-    int xpos[4] = {0, 1, 0, -1};
-    int ypos[4] = {-1, 0, 1, 0};
-    for(int i = 0; i < 5; ++i) {
-        cnt += image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(WHITE) && image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(LINECOLOR);
-    }
-    return cnt >= 2;
-}
+//bool adjObstacle(QImage image, int x, int y) {
+//    int cnt  = 0;
+//    int xpos[4] = {0, 1, 0, -1};
+//    int ypos[4] = {-1, 0, 1, 0};
+//    for(int i = 0; i < 5; ++i) {
+//        cnt += image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(WHITE) && image.pixelColor(x+xpos[i],y+ypos[i]).rgb() != QRgb(LINECOLOR);
+//    }
+//    return cnt >= 2;
+//}
 bool obstacle(QImage image, int x, int y) {
     return (image.pixelColor(x,y).rgb() != QRgb(WHITE) && image.pixelColor(x,y).rgb() != QRgb(LINECOLOR));
 }
 vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
    vector<pair<int,int>> edge;
    bool outside = false;
-   bool straightLine = false;
-   if (x0 == x1 || y1 == y0)
-       straightLine = true;
+//   bool straightLine = false;
+//   if (x0 == x1 || y1 == y0)
+//       straightLine = true;
    int cnt  = 0;
    double dx =  abs(x1-x0);
    double sx = x0<x1 ? 1 : -1;
@@ -299,11 +299,11 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
        if (current == QRgb(WHITE) && !outside) {
            outside = true;
            cnt++;
-       } else if (straightLine && outside && obstacle(image, x0, y0)) {
+       } else if (/*straightLine &&*/ outside && obstacle(image, x0, y0)) {
            outside = false;
-       } else if (!straightLine && outside && (obstacle(image, x0, y0) || adjObstacle(image, x0, y0))){
+       } /*else if (!straightLine && outside && (obstacle(image, x0, y0) || adjObstacle(image, x0, y0))){
            outside = false;
-       }
+       }*/
        if(cnt > 1) {
            return {make_pair(-1, -1)};
        }
@@ -321,12 +321,6 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
    return edge;
 }
 
-struct compare {
-    bool operator()(vector<pair<int, int>> node1, vector<pair<int, int>> node2) {
-        return node1[5].first > node2[5].first;
-    }
-};
-
 void MainWindow::setTable()
 {
     int sz = labels.size();
@@ -336,8 +330,7 @@ void MainWindow::setTable()
     model->setHorizontalHeaderLabels(headers);
     vector<vector<pair<int, int>>> clone = labels;
     if (ordered) {
-        compare cmp;
-        sort(clone.begin(), clone.end(), cmp);
+        sort(clone.begin(), clone.end(), [](vector<pair<int, int>> node1, vector<pair<int, int>> node2){return node1[5].first > node2[5].first;});
     }
     for(vector<pair<int, int>> v : clone){
 
@@ -375,8 +368,8 @@ void MainWindow::on_openFile_clicked()
     }
     QImage image = QImage(fileName);
     labels = vector<vector<pair<int, int>>>();
-    QImage copy = image;
-    QGraphicsScene *graphic = new QGraphicsScene(this);
+    copy = image;
+    graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(image));
     ui->graphicsViewOriginal->setScene(graphic);
 
@@ -450,7 +443,7 @@ void MainWindow::on_openFile_clicked()
 }
     clean(copy);
     int sz = labels.size();
-    Graph graph;
+    g = Graph();
     if (!openFile) {
         int d, r, xp, xc, yp, yc;
         for(int i = 0; i < sz; ++i) {
@@ -507,40 +500,40 @@ void MainWindow::on_openFile_clicked()
                 model2->setData(index, adj);
             }
     }
-        graph.nodes.push_back(node);
+        g.nodes.push_back(node);
 }
     ui->tableView_2->resizeColumnsToContents();
     ui->tableView_2->resizeRowsToContents();
 
 
 
-    //Par de nodos más cercanos
-    if (sz > 1 && trash.size() < sz-1) {
+//    //Par de nodos más cercanos
+//    if (sz > 1 && trash.size() < sz-1) {
 
-    int x0, y0, x1, y1;
-    set<pair<int, int>> visited;
-    for(int i = 0; i < sz; ++i) {
-        Node node1 = graph.nodes[i];
-        x0 = node1.x;
-        y0 = node1.y;
-        for(int j = 0; j < sz; ++j) {
-            if (i != j && !visited.count(make_pair(i, j)) && !trash.count(i) && !trash.count(j)) {
-                Node node2 = graph.nodes[j];
-                x1 = node2.x;
-                y1 = node2.y;
-                int distance = sqrt(pow((x1-x0), 2) + pow((y1-y0), 2));
-                graph.closest.push(make_pair(-distance, make_pair(i, j)));
-                visited.insert(make_pair(i, j));
-            }
-        }
-    }
-    // Colorear par de nodos más cercanos
-        pair<int, pair<int,int>> top = graph.closest.top();
-        pair<int, int> node1 =  labels[top.second.first][4];
-        pair<int, int> node2 =  labels[top.second.second][4];
-        deleteFigure(copy, BLACK, node1, CLOSESTCOLOR);
-        deleteFigure(copy, BLACK, node2, CLOSESTCOLOR);
-    }
+//    int x0, y0, x1, y1;
+//    set<pair<int, int>> visited;
+//    for(int i = 0; i < sz; ++i) {
+//        Node node1 = graph.nodes[i];
+//        x0 = node1.x;
+//        y0 = node1.y;
+//        for(int j = 0; j < sz; ++j) {
+//            if (i != j && !visited.count(make_pair(i, j)) && !trash.count(i) && !trash.count(j)) {
+//                Node node2 = graph.nodes[j];
+//                x1 = node2.x;
+//                y1 = node2.y;
+//                int distance = sqrt(pow((x1-x0), 2) + pow((y1-y0), 2));
+//                graph.closest.push(make_pair(-distance, make_pair(i, j)));
+//                visited.insert(make_pair(i, j));
+//            }
+//        }
+//    }
+//    // Colorear par de nodos más cercanos
+//        pair<int, pair<int,int>> top = graph.closest.top();
+//        pair<int, int> node1 =  labels[top.second.first][4];
+//        pair<int, int> node2 =  labels[top.second.second][4];
+//        deleteFigure(copy, BLACK, node1, CLOSESTCOLOR);
+//        deleteFigure(copy, BLACK, node2, CLOSESTCOLOR);
+//    }
     // Etiquetas de nodos
     for(int i = 0; i < sz; ++i) {
         QPainter p(&copy);
@@ -554,20 +547,40 @@ void MainWindow::on_openFile_clicked()
     graphic->addPixmap(QPixmap::fromImage(copy));
     ui->graphicsViewResult->setScene(graphic);
 
-
     openFile = true;
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
-    if(event->button() == Qt::LeftButton)
-    {
-        QPoint origin = ui->graphicsViewResult->mapFromGlobal(QCursor::pos());
-        QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
+//    if(event->button() == Qt::LeftButton)
+//    {
+//        QPoint origin = ui->graphicsViewResult->mapFromGlobal(QCursor::pos());
+//        QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
+//        deletex = int(relativeOrigin.x());
+//        deletey = int(relativeOrigin.y());
+//        openFile = false;
+//        on_openFile_clicked();
 
-        deletex = int(relativeOrigin.x());
-        deletey = int(relativeOrigin.y());
-        openFile = false;
-        on_openFile_clicked();
+//    }
+    QPoint origin = ui->graphicsViewResult->mapFromGlobal(QCursor::pos());
+    QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
+    int xp = int(relativeOrigin.x()), yp = int(relativeOrigin.y());
+    int xc, yc, r, d;
+    int w = 30, h = 30;
+    if(event->button() == Qt::LeftButton)
+    {   for(int i = 0; i < labels.size(); ++i) {
+            xc = labels[i][4].first;
+            yc = labels[i][4].second;
+            d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
+            r = labels[i][5].first;
+            if (d <= r) {
+                QPainter p(&copy);
+                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("dog.png"));
+                p.end();
+                graphic = new QGraphicsScene(this);
+                graphic->addPixmap(QPixmap::fromImage(copy));
+                ui->graphicsViewResult->setScene(graphic);
+            }
+        }
 
     }
 }
@@ -579,3 +592,6 @@ void MainWindow::on_order_clicked()
     ordered = !ordered;
     setTable();
 }
+
+
+

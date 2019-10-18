@@ -1,0 +1,19 @@
+// 1) Setup
+- Elegir número de agentes en el juego
+- Elegir vértices donde habrá agentes
+- Un agente por vértice
+- Colocar señuelo en algún nodo
+- Todos los agentes comienzan con misma velocidad
+- Agentes tienen sensor de la dirección del señuelo
+- Colocar agentes de manera aleatoria -- otro botón
+
+// 2) Comenzar juego
+- Al menos un agente y un señuelo para comenzar juego
+- Animar movimiento de un agente a otro a través de arista
+- Agentes dejan banderas en nodos conocidos
+- Cuando agente llega a señuelo, señuelo desaparece y da velocidad al agente
+- Juego termina cuando el señuelo desaparece
+- Cuando juego termine, los agentes no desaparecen al menos que se haga reiniciar todo
+
+// 3) Puntos extras
+- Hilos/asynch
