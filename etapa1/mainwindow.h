@@ -41,9 +41,11 @@ private:
     int deletey;
     vector<vector<pair<int, int>>> labels;
     Graph g;
-    int agentId = 1;
+    int agentId;
     QImage copy;
     QGraphicsScene *graphic;
+    int numAgents;
+    bool lureExists;
 };
 
 #endif // MAINWINDOW_H

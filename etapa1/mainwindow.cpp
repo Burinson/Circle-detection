@@ -366,6 +366,9 @@ void MainWindow::on_openFile_clicked()
             tr("Open Image"), "/home/uriel/Desktop/Seminario de algoritmia/etapa1/etapa2", tr("Image Files (*.png)"));
         trash = set<int>();
     }
+    agentId = 1;
+    numAgents = 0;
+    lureExists = false;
     QImage image = QImage(fileName);
     labels = vector<vector<pair<int, int>>>();
     copy = image;
@@ -573,7 +576,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
             yc = labels[i][4].second;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
             r = labels[i][5].first;
-            if (d <= r && labels[i][6].first) {
+            if (d <= r && labels[i][6].first && numAgents < labels.size()-1) {
                 QPainter p(&copy);
                 p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("dog.png"));
                 p.end();
@@ -581,9 +584,27 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
                 graphic->addPixmap(QPixmap::fromImage(copy));
                 ui->graphicsViewResult->setScene(graphic);
                 labels[i][6].first = false;
+                numAgents++;
             }
         }
-
+    }
+    if(event->button() == Qt::RightButton)
+    {   for(int i = 0; i < labels.size(); ++i) {
+            xc = labels[i][4].first;
+            yc = labels[i][4].second;
+            d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
+            r = labels[i][5].first;
+            if (d <= r && labels[i][6].first && !lureExists) {
+                QPainter p(&copy);
+                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("bone.png"));
+                p.end();
+                graphic = new QGraphicsScene(this);
+                graphic->addPixmap(QPixmap::fromImage(copy));
+                ui->graphicsViewResult->setScene(graphic);
+                labels[i][6].first = false;
+                lureExists = true;
+            }
+        }
     }
 }
 
