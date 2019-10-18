@@ -9,7 +9,6 @@
 #include <qpainter.h>
 #include <set>
 #include <queue>
-#include <graph.h>
 #include <QMouseEvent>
 #include <deque>
 
@@ -323,34 +322,33 @@ vector<pair<int,int>> addEdge(QImage &image, int x0, int y0, int x1, int y1) {
 
 void MainWindow::setTable()
 {
-    int sz = labels.size();
-    model = new QStandardItemModel(sz, 6, this);
+    model = new QStandardItemModel(g.nodes.size(), 6, this);
     QStringList headers, ids;
     headers << "Arriba" << "Derecha" << "Abajo" << "Izquierda" << "Centro" << "Radio";
     model->setHorizontalHeaderLabels(headers);
-    vector<vector<pair<int, int>>> clone = labels;
-    if (ordered) {
-        sort(clone.begin(), clone.end(), [](vector<pair<int, int>> node1, vector<pair<int, int>> node2){return node1[5].first > node2[5].first;});
-    }
-    for(vector<pair<int, int>> v : clone){
 
-        ids << QString::fromStdString(to_string(v[5].second+1));
+//    if (ordered) {
+//        sort(clone.begin(), clone.end(), [](vector<pair<int, int>> node1, vector<pair<int, int>> node2){return node1[5].first > node2[5].first;});
+//    }
+    for(Node node : g.nodes){
+
+        ids << QString::fromStdString(to_string(node.id+1));
     }
     model->setVerticalHeaderLabels(ids);
     QModelIndex index;
-    for(int i = 0; i < sz; ++i) {
+    for(Node node : g.nodes) {
         for(int j = 0; j < 6; ++j) {
             ui->tableView->setModel(model);
-            if (!trash.count(i)) {
-                index = model->index(i, j, QModelIndex());
+            if (!trash.count(node.id)) {
+                index = model->index(node.id, j, QModelIndex());
                 model->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
                 QStringList coordinates;
-                coordinates << QString::fromStdString(to_string(clone[i][0].first)) + ", " + QString::fromStdString(to_string(clone[i][0].second));
-                coordinates << QString::fromStdString(to_string(clone[i][1].first)) + ", " + QString::fromStdString(to_string(clone[i][1].second));
-                coordinates << QString::fromStdString(to_string(clone[i][2].first)) + ", " + QString::fromStdString(to_string(clone[i][2].second));
-                coordinates << QString::fromStdString(to_string(clone[i][3].first)) + ", " + QString::fromStdString(to_string(clone[i][3].second));
-                coordinates << QString::fromStdString(to_string(clone[i][4].first)) + ", " + QString::fromStdString(to_string(clone[i][4].second));
-                coordinates << QString::fromStdString(to_string(clone[i][5].first));
+                coordinates << QString::fromStdString(to_string(node.top.x)) + ", " + QString::fromStdString(to_string(node.top.y));
+                coordinates << QString::fromStdString(to_string(node.right.x)) + ", " + QString::fromStdString(to_string(node.right.y));
+                coordinates << QString::fromStdString(to_string(node.bot.x)) + ", " + QString::fromStdString(to_string(node.bot.y));
+                coordinates << QString::fromStdString(to_string(node.left.x)) + ", " + QString::fromStdString(to_string(node.left.y));
+                coordinates << QString::fromStdString(to_string(node.center.x)) + ", " + QString::fromStdString(to_string(node.center.y));
+                coordinates << QString::fromStdString(to_string(node.radius));
                 model->setData(index, coordinates[j]);
             }
 
@@ -370,7 +368,6 @@ void MainWindow::on_openFile_clicked()
     numAgents = 0;
     lureExists = false;
     QImage image = QImage(fileName);
-    labels = vector<vector<pair<int, int>>>();
     copy = image;
     graphic = new QGraphicsScene(this);
     graphic->addPixmap(QPixmap::fromImage(image));
@@ -379,6 +376,7 @@ void MainWindow::on_openFile_clicked()
     clean(copy);
     int circles = separator(copy, qRgb(2, 2, 2), searchColor(copy, BLACK), 2, 0, true);
 
+    g = Graph();
     QRgb color;
     int id = 0;
     for(int i = 1; i <= circles; ++i) {
@@ -432,79 +430,68 @@ void MainWindow::on_openFile_clicked()
             coordinates << QString::fromStdString(to_string(center.first)) + ", " + QString::fromStdString(to_string(center.second));
 
             if (top.first != -1) {
-                vector<pair<int, int>> v;
-                v.push_back(top);
-                v.push_back(right);
-                v.push_back(bot);
-                v.push_back(left);
-                v.push_back(center);
-                v.push_back(make_pair((topRadio+leftRadio)/2, id));
-                v.push_back(make_pair(true, true));
-                labels.push_back(v);
-                id++;
+                Node node;
+                node.id = id++;
+                node.top = Point(top);
+                node.right = Point(right);
+                node.bot = Point(bot);
+                node.left = Point(left);
+                node.center = Point(center);
+                node.radius = (topRadio+leftRadio)/2;
+                g.nodes.push_back(node);
             }
     }
 }
     clean(copy);
-    int sz = labels.size();
-    g = Graph();
     if (!openFile) {
         int d, r, xp, xc, yp, yc;
-        for(int i = 0; i < sz; ++i) {
+        for(Node node : g.nodes) {
             xp = deletex;
-            xc =labels[i][4].first;
+            xc = node.center.x;
             yp = deletey;
-            yc = labels[i][4].second;
-            r = labels[i][5].first;
+            yc = node.center.y;
+            r = node.radius;
             d = sqrt(pow(xp-xc, 2) + pow(yp-yc, 2));
             if (d < r) {
-                trash.insert(i); // Manda a la basura los nodos seleccionados
+                trash.insert(node.id); // Manda a la basura los nodos seleccionados
                 break;
             }
         }
     }
     setTable();
     for(int i : trash) {
-        deleteFigure(copy, BLACK, labels[i][0], WHITE);
+        deleteFigure(copy, BLACK, make_pair(g.nodes[i].top.x, g.nodes[i].top.y), WHITE);
     }
 
     // Computar grafo
     set<pair<int,int>> vis;
     QModelIndex index;
-    model2 = new QStandardItemModel(sz, sz, this);
-    for(int i = 0; i < sz; ++i) {
-        Node node;
-        node.id = i;
-        node.x = labels[i][4].first;
-        node.y = labels[i][4].second;
-        for(int j = 0; j < sz; ++j) {
+    model2 = new QStandardItemModel(g.nodes.size(), g.nodes.size(), this);
+    for(Node node : g.nodes) {
+        for(int j = 0; j < g.nodes.size(); ++j) {
             ui->tableView_2->setModel(model2);
-            if (i != j && !trash.count(i) && !trash.count(j)) {
-                index = model2->index(i, j, QModelIndex());
+            if (node.id != j && !trash.count(node.id) && !trash.count(j)) {
+                index = model2->index(node.id, j, QModelIndex());
                 model2->setData(index, Qt::AlignCenter, Qt::TextAlignmentRole);
 
                 QStringList adj;
-                Node neighbor;
-                neighbor.id = j;
-                neighbor.x = labels[j][4].first;
-                neighbor.y = labels[j][4].second;
-                if (!vis.count(make_pair(i, j))) {
+                Node neighbor = g.nodes[j];
+                if (!vis.count(make_pair(node.id, neighbor.id))) {
                     Edge edge;
-                    edge.line = addEdge(copy, node.x, node.y, neighbor.x, neighbor.y);
+                    edge.line = addEdge(copy, node.center.x, node.center.y, neighbor.center.x, neighbor.center.y);
                     if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
                         node.edges.push_back(edge); // asigna una arista a el nodo
                         adj << "✓";
-                        line(copy, LINECOLOR, node.x, node.y, neighbor.x, neighbor.y); // dibuja la arista
+                        line(copy, LINECOLOR, node.center.x, node.center.y, neighbor.center.x, neighbor.center.y); // dibuja la arista
                     } else {
                         adj << "";
                     }
                     node.neighbors.push_back(neighbor);
-                    vis.insert(make_pair(i, j));
+                    vis.insert(make_pair(node.id, neighbor.id));
                 }
                 model2->setData(index, adj);
             }
     }
-        g.nodes.push_back(node);
 }
     ui->tableView_2->resizeColumnsToContents();
     ui->tableView_2->resizeRowsToContents();
@@ -539,11 +526,11 @@ void MainWindow::on_openFile_clicked()
 //        deleteFigure(copy, BLACK, node2, CLOSESTCOLOR);
 //    }
     // Etiquetas de nodos
-    for(int i = 0; i < sz; ++i) {
+    for(Node node : g.nodes) {
         QPainter p(&copy);
         p.setPen(QPen(Qt::white));
         p.setFont(QFont("Times", 16, QFont::Bold));
-        p.drawText(QPointF(labels[i][4].first-5, labels[i][4].second+7), QString::fromStdString(to_string(i+1)));
+        p.drawText(QPointF(node.center.x-5, node.center.y+7), QString::fromStdString(to_string(node.id+1)));
         p.end();
     }
 
@@ -571,37 +558,38 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
     int xc, yc, r, d;
     int w = 30, h = 30;
     if(event->button() == Qt::LeftButton)
-    {   for(int i = 0; i < labels.size(); ++i) {
-            xc = labels[i][4].first;
-            yc = labels[i][4].second;
+    {   for(Node &node : g.nodes) {
+            xc = node.center.x;
+            yc = node.center.y;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
-            r = labels[i][5].first;
-            if (d <= r && labels[i][6].first && numAgents < labels.size()-1) {
+            r = node.radius;
+            if (d <= r && node.free && numAgents < g.nodes.size()-1) {
                 QPainter p(&copy);
-                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("dog.png"));
+                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("agent.png"));
                 p.end();
                 graphic = new QGraphicsScene(this);
                 graphic->addPixmap(QPixmap::fromImage(copy));
                 ui->graphicsViewResult->setScene(graphic);
-                labels[i][6].first = false;
+                node.free = false;
                 numAgents++;
+                qDebug() << numAgents << g.nodes.size();
             }
         }
     }
     if(event->button() == Qt::RightButton)
-    {   for(int i = 0; i < labels.size(); ++i) {
-            xc = labels[i][4].first;
-            yc = labels[i][4].second;
+    {   for(Node &node : g.nodes) {
+            xc = node.center.x;
+            yc = node.center.y;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
-            r = labels[i][5].first;
-            if (d <= r && labels[i][6].first && !lureExists) {
+            r = node.radius;
+            if (d <= r && node.free && !lureExists) {
                 QPainter p(&copy);
-                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("bone.png"));
+                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("lure.png"));
                 p.end();
                 graphic = new QGraphicsScene(this);
                 graphic->addPixmap(QPixmap::fromImage(copy));
                 ui->graphicsViewResult->setScene(graphic);
-                labels[i][6].first = false;
+                node.free = false;
                 lureExists = true;
             }
         }
@@ -618,3 +606,10 @@ void MainWindow::on_order_clicked()
 
 
 
+
+void MainWindow::on_pushButton_clicked()
+{
+    if (numAgents && lureExists) {
+
+    }
+}

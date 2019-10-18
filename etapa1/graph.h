@@ -12,6 +12,7 @@ struct Edge {
 
 struct Agent {
     int id;
+    int speed;
 
     Agent(int id)
     {
@@ -20,17 +21,33 @@ struct Agent {
     }
     Agent() {
         this->id = -1;
+        this->speed = 1;
     }
+};
+struct Point {
+    int x;
+    int y;
+    Point(pair<int, int> p) {
+        this->x = p.first;
+        this->y = p.second;
+    }
+    Point() {}
 };
 
 struct Node {
     int id;
-    int x;
-    int y;
+    Point top;
+    Point right;
+    Point bot;
+    Point left;
+    Point center;
+    bool free;
+    int radius;
     vector<Node> neighbors;
     vector<Edge> edges;
-    bool free = true;
-    };
+    vector<Agent> agents;
+    Node() {free = true; }
+};
 
 struct Graph {
     vector<Node> nodes;
@@ -38,3 +55,4 @@ struct Graph {
 };
 
 #endif // GRAPH_H
+
