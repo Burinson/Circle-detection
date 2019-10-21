@@ -11,7 +11,15 @@
 #include <queue>
 #include <QMouseEvent>
 #include <deque>
-
+#include <qpropertyanimation.h>
+#include <chrono>
+#include <thread>
+#include <future>
+#include <unistd.h>
+#include <qthread.h>
+#include <qtimer.h>
+#include <qsignalmapper.h>
+#include <QGraphicsPixmapItem>
 #define TOP(p) p.first, p.second-1
 #define RIGHT(p) p.first+1, p.second
 #define BOTTOM(p) p.first, p.second+1
@@ -36,8 +44,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     this->showMaximized();
-
-
 }
 
 MainWindow::~MainWindow()
@@ -366,7 +372,8 @@ void MainWindow::on_openFile_clicked()
     }
     agentId = 1;
     numAgents = 0;
-    lureExists = false;
+    running = false;
+    taken = set<int>();
     QImage image = QImage(fileName);
     copy = image;
     graphic = new QGraphicsScene(this);
@@ -467,7 +474,7 @@ void MainWindow::on_openFile_clicked()
     set<pair<int,int>> vis;
     QModelIndex index;
     model2 = new QStandardItemModel(g.nodes.size(), g.nodes.size(), this);
-    for(Node node : g.nodes) {
+    for(Node &node : g.nodes) {
         for(int j = 0; j < g.nodes.size(); ++j) {
             ui->tableView_2->setModel(model2);
             if (node.id != j && !trash.count(node.id) && !trash.count(j)) {
@@ -480,13 +487,12 @@ void MainWindow::on_openFile_clicked()
                     Edge edge;
                     edge.line = addEdge(copy, node.center.x, node.center.y, neighbor.center.x, neighbor.center.y);
                     if (edge.line[0].first != -1 && edge.line[0].second != -1) { // Si no hay obstáculo
-                        node.edges.push_back(edge); // asigna una arista a el nodo
+                        node.adj.push_back(make_pair(neighbor, edge));
                         adj << "✓";
                         line(copy, LINECOLOR, node.center.x, node.center.y, neighbor.center.x, neighbor.center.y); // dibuja la arista
                     } else {
                         adj << "";
                     }
-                    node.neighbors.push_back(neighbor);
                     vis.insert(make_pair(node.id, neighbor.id));
                 }
                 model2->setData(index, adj);
@@ -541,6 +547,14 @@ void MainWindow::on_openFile_clicked()
     openFile = true;
 }
 
+void MainWindow::drawImage(QImage &image, QImage icon, int x, int y) {
+    QPainter p(&image);
+    p.drawImage(QRect(x-iconWidth/2, y-iconHeight/2, iconWidth, iconHeight), icon);
+    graphic = new QGraphicsScene(this);
+    graphic->addPixmap(QPixmap::fromImage(copy));
+    ui->graphicsViewResult->setScene(graphic);
+}
+
 void MainWindow::mousePressEvent(QMouseEvent *event) {
 //    if(event->button() == Qt::LeftButton)
 //    {
@@ -556,23 +570,18 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
     QPointF relativeOrigin = ui->graphicsViewResult->mapToScene(origin);
     int xp = int(relativeOrigin.x()), yp = int(relativeOrigin.y());
     int xc, yc, r, d;
-    int w = 30, h = 30;
+    int w = 50, h = 50;
     if(event->button() == Qt::LeftButton)
     {   for(Node &node : g.nodes) {
             xc = node.center.x;
             yc = node.center.y;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
             r = node.radius;
-            if (d <= r && node.free && numAgents < g.nodes.size()-1) {
-                QPainter p(&copy);
-                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("agent.png"));
-                p.end();
-                graphic = new QGraphicsScene(this);
-                graphic->addPixmap(QPixmap::fromImage(copy));
-                ui->graphicsViewResult->setScene(graphic);
-                node.free = false;
-                numAgents++;
-                qDebug() << numAgents << g.nodes.size();
+            if (d <= r && !taken.count(node.id) && numAgents < g.nodes.size()-1) {
+                drawImage(copy, agentIcon, xc, yc);
+                Agent agent(numAgents++, node.center, node.adj);
+                taken.insert(node.id);
+                g.agents.push_back(agent);
             }
         }
     }
@@ -582,15 +591,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
             yc = node.center.y;
             d = sqrt((xp-xc)*(xp-xc)+(yp-yc)*(yp-yc));
             r = node.radius;
-            if (d <= r && node.free && !lureExists) {
-                QPainter p(&copy);
-                p.drawImage(QRect(xp-w/2, yp-h/2, h, w), QImage("lure.png"));
-                p.end();
-                graphic = new QGraphicsScene(this);
-                graphic->addPixmap(QPixmap::fromImage(copy));
-                ui->graphicsViewResult->setScene(graphic);
-                node.free = false;
-                lureExists = true;
+            if (d <= r && !taken.count(node.id) && !g.lure.active) {
+                drawImage(copy, lureIcon, xc, yc);
+                g.lure = node.center;
+                g.lure.activate();
+                taken.insert(node.id);
             }
         }
     }
@@ -604,12 +609,24 @@ void MainWindow::on_order_clicked()
     setTable();
 }
 
-
-
-
 void MainWindow::on_pushButton_clicked()
 {
-    if (numAgents && lureExists) {
+    if (numAgents && g.lure.active) {
+        running = true;
+        for(auto agent : g.agents) {
+            for(auto neighbor : agent.adj) {
+                if (neighbor.first.center == g.lure.pos) {
+                    int cnt  = 0;
+                    for(auto point : neighbor.second.line) {
+                        cnt++;
+                        if (cnt % 24 == 0) {
+                            sleep(1);
+                            drawImage(copy, agentIcon, point.first, point.second);
+                        }
+                    }
+                }
+            }
+        }
 
     }
 }
